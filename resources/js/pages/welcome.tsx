@@ -56,7 +56,7 @@ export default function Welcome() {
                                     </span>
                                     <span>
                                         Read the
-                                        <a
+                                        <a rel='noopener'
                                             href="https://laravel.com/docs"
                                             target="_blank"
                                             className="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
@@ -87,7 +87,7 @@ export default function Welcome() {
                                     </span>
                                     <span>
                                         Watch video tutorials at
-                                        <a
+                                        <a rel='noopener'
                                             href="https://laracasts.com"
                                             target="_blank"
                                             className="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
@@ -113,7 +113,7 @@ export default function Welcome() {
                             </ul>
                             <ul className="flex gap-3 text-sm leading-normal">
                                 <li>
-                                    <a
+                                    <a rel='noopener'
                                         href="https://cloud.laravel.com"
                                         target="_blank"
                                         className="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"

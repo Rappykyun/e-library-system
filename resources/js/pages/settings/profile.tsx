@@ -66,6 +66,12 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                         </div>
 
                         <div className="grid gap-2">
+                            <Label htmlFor="role">Role</Label>
+
+                            <Input id="role" className="mt-1 block w-full" value={auth.roles[0].toUpperCase()} disabled />
+                        </div>
+
+                        <div className="grid gap-2">
                             <Label htmlFor="email">Email address</Label>
 
                             <Input
