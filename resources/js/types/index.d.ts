@@ -44,3 +44,23 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    created_at: string;
+    updated_at: string;
+}
+export interface Book {
+    id: number;
+    title: string;
+    author: string;
+    description: string | null;
+    cover_image_url: string | null;
+    ebook_url: string | null;
+    category?: Category;
+    created_at: string;
+    updated_at: string;
+}

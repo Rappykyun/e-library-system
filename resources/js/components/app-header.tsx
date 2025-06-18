@@ -33,12 +33,12 @@ const mainNavItems: NavItem[] = [
         icon: Bookmark,
         permission: 'create categories',
     },
-    {
-        title: 'Tags',
-        href: '/admin/tags',
-        icon: Tag,
-        permission: 'create tags',
-    },
+    // {
+    //     title: 'Tags',
+    //     href: '/admin/tags',
+    //     icon: Tag,
+    //     permission: 'create tags',
+    // },
     {
         title: 'Users',
         href: '/admin/users',

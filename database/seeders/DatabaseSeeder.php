@@ -14,14 +14,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(RolesAndPermissionsSeeder::class);
+        $this->call([
+            RolesAndPermissionsSeeder::class,
+            CategorySeeder::class,
+        ]);
 
         // User::factory(10)->create();
 
         $user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'admin',
+            'email' => 'admin@example.com',
+            'password' => '12345678'
         ]);
+
 
         $adminRole = Role::findByName('admin');
         $user->assignRole($adminRole);
