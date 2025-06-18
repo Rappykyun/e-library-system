@@ -7,10 +7,11 @@ import { NavigationMenu, NavigationMenuItem, NavigationMenuList, navigationMenuT
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
+import { usePermission } from '@/hooks/use-permission';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { BookMarked, Bookmark, LayoutGrid, Library, Menu, Search, Settings, Tag, Users } from 'lucide-react';
 import AppLogoIcon from './app-logo-icon';
 
 const mainNavItems: NavItem[] = [
@@ -18,19 +19,58 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutGrid,
+        permission: 'view dashboard',
+    },
+    {
+        title: 'Books',
+        href: '/admin/books',
+        icon: Library,
+        permission: 'edit books',
+    },
+    {
+        title: 'Categories',
+        href: '/admin/categories',
+        icon: Bookmark,
+        permission: 'create categories',
+    },
+    {
+        title: 'Tags',
+        href: '/admin/tags',
+        icon: Tag,
+        permission: 'create tags',
+    },
+    {
+        title: 'Users',
+        href: '/admin/users',
+        icon: Users,
+        permission: 'view users',
+    },
+];
+
+const adminNavItems: NavItem[] = [
+
+];
+
+const studentNavItems: NavItem[] = [
+    {
+        title: 'Browse Books',
+        href: '/books',
+        icon: Library,
+        permission: 'browse books',
+    },
+    {
+        title: 'My Bookmarks',
+        href: '/bookmarks',
+        icon: BookMarked,
+        permission: 'bookmark books',
     },
 ];
 
 const rightNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        title: 'Settings',
+        href: '/settings/profile',
+        icon: Settings,
     },
 ];
 
@@ -43,7 +83,14 @@ interface AppHeaderProps {
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
+    const { hasPermission, hasRole } = usePermission();
     const getInitials = useInitials();
+
+    const filteredMainNavItems = mainNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
+    const filteredAdminNavItems = adminNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
+    const filteredStudentNavItems = studentNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
+    const navItems = hasRole('admin') ? filteredAdminNavItems : hasRole('student') ? filteredStudentNavItems : [];
+
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -55,8 +102,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </Link>
                         </div>
                         <div className="flex flex-col">
-                            <h1 className="text-lg font-semibold">COMMISSION ON HIGHER EDUCATION REGIONAL OFFICE-XII</h1> {/* Adjusted text size */}
-                            <h1 className="text-md">E-Library System</h1>
+                            <h1 className="text-lg font-semibold text-white">COMMISSION ON HIGHER EDUCATION REGIONAL OFFICE-XII</h1> {/* Adjusted text size */}
+                            <h1 className="text-md text-white">E-Library System</h1>
                         </div>
                     </div>
                 </div>
@@ -77,7 +124,13 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
-                                            {mainNavItems.map((item) => (
+                                            {filteredMainNavItems.map((item) => (
+                                                <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
+                                                    {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
+                                                    <span>{item.title}</span>
+                                                </Link>
+                                            ))}
+                                            {navItems.map((item) => (
                                                 <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
                                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
                                                     <span>{item.title}</span>
@@ -90,7 +143,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 <a
                                                     key={item.title}
                                                     href={item.href}
-                                                    target="_blank"
+                                                    target={item.href.startsWith('http') ? '_blank' : undefined}
                                                     rel="noopener noreferrer"
                                                     className="flex items-center space-x-2 font-medium"
                                                 >
@@ -109,7 +162,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     <div className="ml-6 hidden h-full items-center space-x-6 lg:flex">
                         <NavigationMenu className="flex h-full items-stretch">
                             <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {mainNavItems.map((item, index) => (
+                                {filteredMainNavItems.map((item, index) => (
                                     <NavigationMenuItem key={index} className="relative flex h-full items-center">
                                         <Link
                                             href={item.href}
@@ -132,48 +185,51 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
 
                     <div className="ml-auto flex items-center space-x-2">
+                        <NavigationMenu className="hidden h-full items-stretch lg:flex">
+                            <NavigationMenuList className="flex h-full items-stretch space-x-2">
+                                {navItems.map((item, index) => (
+                                    <NavigationMenuItem key={index} className="relative flex h-full items-center">
+                                        <Link
+                                            href={item.href}
+                                            className={cn(
+                                                navigationMenuTriggerStyle(),
+                                                page.url.startsWith(item.href) && activeItemStyles,
+                                                'h-9 cursor-pointer px-3',
+                                            )}
+                                        >
+                                            {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
+                                            {item.title}
+                                        </Link>
+                                        {page.url.startsWith(item.href) && (
+                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
+                                        )}
+                                    </NavigationMenuItem>
+                                ))}
+                            </NavigationMenuList>
+                        </NavigationMenu>
+
                         <div className="relative flex items-center space-x-1">
                             <Button variant="ghost" size="icon" className="group h-9 w-9 cursor-pointer">
                                 <Search className="!size-5 opacity-80 group-hover:opacity-100" />
                             </Button>
-                            {/* <div className="hidden lg:flex">
-                                {rightNavItems.map((item) => (
-                                    <TooltipProvider key={item.title} delayDuration={0}>
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <a
-                                                    href={item.href}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="group ml-1 inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                                                >
-                                                    <span className="sr-only">{item.title}</span>
-                                                    {item.icon && <Icon iconNode={item.icon} className="size-5 opacity-80 group-hover:opacity-100" />}
-                                                </a>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>{item.title}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                ))}
-                            </div> */}
                         </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="size-10 rounded-full p-1">
-                                    <Avatar className="size-8 overflow-hidden rounded-full">
-                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
-                                        <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                            {getInitials(auth.user.name)}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="end">
-                                <UserMenuContent user={auth.user} />
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        {auth.user && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="size-10 rounded-full p-1">
+                                        <Avatar className="size-8 overflow-hidden rounded-full">
+                                            <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                            <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                                {getInitials(auth.user.name)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56" align="end">
+                                    <UserMenuContent user={auth.user} />
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
                     </div>
                 </div>
             </div>
