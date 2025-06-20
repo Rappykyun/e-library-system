@@ -58,9 +58,16 @@ export interface Book {
     title: string;
     author: string;
     description: string | null;
-    cover_image_url: string | null;
+    isbn: string | null;
+    cover_image_url: string;
+    cover_image_public_id: string | null;
     ebook_url: string | null;
+    ebook_public_id: string | null;
     category?: Category;
+    publisher: string | null;
+    published_year: string | null;
+    pages: number | null;
+    language: string | null;
     created_at: string;
     updated_at: string;
 }

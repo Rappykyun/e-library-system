@@ -11,7 +11,7 @@ import { usePermission } from '@/hooks/use-permission';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookMarked, Bookmark, LayoutGrid, Library, Menu, Search, Settings, Tag, Users } from 'lucide-react';
+import { BookMarked, Bookmark, LayoutGrid, Library, Menu, Search, Settings, Users } from 'lucide-react';
 import AppLogoIcon from './app-logo-icon';
 
 const mainNavItems: NavItem[] = [
@@ -47,9 +47,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const adminNavItems: NavItem[] = [
-
-];
+const adminNavItems: NavItem[] = [];
 
 const studentNavItems: NavItem[] = [
     {
@@ -93,7 +91,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
     return (
         <>
-            <div className="border-b border-sidebar-border/80">
+            <div className="fixed top-0 right-0 left-0 z-50 border-b border-sidebar-border/80 bg-white shadow-sm">
                 <div className="hidden h-20 items-center space-x-6 bg-blue-500 lg:flex">
                     <div className="mx-auto flex w-full max-w-7xl items-center px-3">
                         <div className="mr-4">
@@ -102,12 +100,13 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </Link>
                         </div>
                         <div className="flex flex-col">
-                            <h1 className="text-lg font-semibold text-white">COMMISSION ON HIGHER EDUCATION REGIONAL OFFICE-XII</h1> {/* Adjusted text size */}
+                            <h1 className="text-lg font-semibold text-white">COMMISSION ON HIGHER EDUCATION REGIONAL OFFICE-XII</h1>{' '}
+                            {/* Adjusted text size */}
                             <h1 className="text-md text-white">E-Library System</h1>
                         </div>
                     </div>
                 </div>
-                <div className="mx-auto flex h-11 items-center px-4 md:max-w-7xl">
+                <div className="mx-auto flex h-11 items-center bg-white px-4 md:max-w-7xl">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -234,7 +233,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                 </div>
             </div>
             {breadcrumbs.length > 1 && (
-                <div className="flex w-full border-b border-sidebar-border/70">
+                <div className="flex w-full border-b border-sidebar-border/70 bg-white">
                     <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>

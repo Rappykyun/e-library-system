@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Testing\Fluent\Concerns\Has;
 
-class book extends Model
+class Book extends Model
 {
     use HasFactory;
 
@@ -24,6 +24,7 @@ class book extends Model
         'cover_image_public_id',
         'ebook_url',
         'ebook_public_id',
+        'views_count',
 
     ];
 

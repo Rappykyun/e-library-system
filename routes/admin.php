@@ -6,7 +6,7 @@ use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    Route::resource('/books', BookController::class)->except(['show']);
+    Route::resource('/books', BookController::class);
     Route::get('/categories', fn() => Inertia::render('admin/categories/index'))->name('categories.index');
     Route::get('/tags', fn() => Inertia::render('admin/tags/index'))->name('tags.index');
     Route::get('/users', fn() => Inertia::render('admin/users/index'))->name('users.index');
