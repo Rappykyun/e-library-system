@@ -48,11 +48,13 @@ export interface User {
 export interface Category {
     id: number;
     name: string;
+    description: string;
     slug: string;
-    description: string | null;
     created_at: string;
     updated_at: string;
+    books_count?: number;
 }
+
 export interface Book {
     id: number;
     title: string;
@@ -68,6 +70,31 @@ export interface Book {
     published_year: string | null;
     pages: number | null;
     language: string | null;
+    download_count: number;
     created_at: string;
     updated_at: string;
+}
+
+export interface Paginated<T> {
+    data: T[];
+    links: {
+        first: string;
+        last: string;
+        prev: string | null;
+        next: string | null;
+    };
+    meta: {
+        current_page: number;
+        from: number;
+        last_page: number;
+        path: string;
+        per_page: number;
+        to: number;
+        total: number;
+    };
+}
+
+export interface Role {
+    id: number;
+    name: string;
 }

@@ -38,14 +38,32 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            // Avoid duplicate-key errors when reseeding
+            Permission::findOrCreate($permission, 'web');
         }
 
-        // create roles and assign created permissions
-        $studentRole = Role::create(['name' => 'student'])
-            ->givePermissionTo(['browse books', 'download books', 'view books', 'bookmark books']);
+        // ------------------------------------------------------------------
+        // Roles
+        // ------------------------------------------------------------------
+        $studentRole = Role::findOrCreate('student', 'web');
+        $studentRole->syncPermissions(['browse books', 'download books', 'view books', 'bookmark books']);
 
-        $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::findOrCreate('admin', 'web');
+        $adminRole->syncPermissions(Permission::all());
+
+        $superAdminRole = Role::findOrCreate('super_admin', 'web');
+        $superAdminRole->syncPermissions(Permission::all());
+
+        // Optionally, make the very first user in the system a super admin
+        $firstUser = \App\Models\User::first();
+        if ($firstUser) {
+            $firstUser->syncRoles(['super_admin']); // ensure only super_admin role
+        }
+
+        $owner = \App\Models\User::firstOrCreate(
+            ['email' => 'owner@example.com'],
+            ['name' => 'System Owner', 'password' => bcrypt('password')]
+        );
+        $owner->syncRoles(['super_admin']);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\HasDatabaseNotifications;
@@ -16,6 +17,13 @@ class Category extends Model
         'slug',
         'description'
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Category $category) {
+            $category->slug = Str::slug($category->name);
+        });
+    }
 
     public function books(): HasMany
     {

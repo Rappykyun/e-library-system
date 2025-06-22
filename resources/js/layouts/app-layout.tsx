@@ -1,4 +1,5 @@
-import AppLayoutTemplate from '@/layouts/app/app-header-layout';
+import { Toaster } from '@/components/ui/sonner';
+import AppHeaderLayout from '@/layouts/app/app-header-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type ReactNode } from 'react';
 
@@ -8,7 +9,8 @@ interface AppLayoutProps {
 }
 
 export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
-    <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
+    <AppHeaderLayout breadcrumbs={breadcrumbs} {...props}>
         {children}
-    </AppLayoutTemplate>
+        <Toaster richColors />
+    </AppHeaderLayout>
 );

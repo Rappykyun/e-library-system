@@ -1,84 +1,62 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { type Book } from '@/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { type Book, type Category } from '@/types';
 import { Link } from '@inertiajs/react';
+import { BookOpen, Download } from 'lucide-react';
 import { useState } from 'react';
+import { DeleteBookDialog } from './delete-book-dialog';
+import { EditBookForm } from './edit-book-form';
 
-export function BookCard({ book}: { book: Book}) {
-    const [imageError, setImageError] = useState(false);
-    const [retryCount, setRetryCount] = useState(0);
+export function BookCard({ book, categories }: { book: Book; categories: Category[] }) {
+    const [isImageBroken, setIsImageBroken] = useState(false);
 
     const handleImageError = () => {
-        console.error('Failed to load cover image:', book.cover_image_url);
-
-        //  try alternative formats
-        if (book.cover_image_url?.includes('cloudinary.com') && retryCount < 3) {
-            const cloudName = 'djsiztcin'; // Your cloud name
-            const publicId = book.cover_image_public_id;
-
-            const alternativeFormats = [
-                `https://res.cloudinary.com/${cloudName}/image/upload/w_400,h_600,c_fill,f_jpg,pg_1/${publicId}.pdf`,
-                `https://res.cloudinary.com/${cloudName}/image/upload/c_fill,w_400,h_600,f_jpg,pg_1/${publicId}`,
-                `https://res.cloudinary.com/${cloudName}/image/upload/w_400,h_600,c_fill,f_jpg,page_1/${publicId}`,
-            ];
-
-            if (retryCount < alternativeFormats.length) {
-              
-                setRetryCount(retryCount + 1);
-                return;
-            }
-        }
-
-        setImageError(true);
+        setIsImageBroken(true);
     };
 
-    const getImageSrc = () => {
-        if (imageError) {
-            return `https://via.placeholder.com/400x600/4A90E2/FFFFFF?text=${encodeURIComponent(book.title)}`;
-        }
-
-        // If we're retrying with alternative formats
-        if (book.cover_image_url?.includes('cloudinary.com') && retryCount > 0) {
-            const cloudName = 'djsiztcin';
-            const publicId = book.cover_image_public_id;
-
-            const alternativeFormats = [
-                `https://res.cloudinary.com/${cloudName}/image/upload/w_400,h_600,c_fill,f_jpg,pg_1/${publicId}.pdf`,
-                `https://res.cloudinary.com/${cloudName}/image/upload/c_fill,w_400,h_600,f_jpg,pg_1/${publicId}`,
-                `https://res.cloudinary.com/${cloudName}/image/upload/w_400,h_600,c_fill,f_jpg,page_1/${publicId}`,
-            ];
-
-            return alternativeFormats[retryCount - 1] || book.cover_image_url;
-        }
-
-        return book.cover_image_url ?? 'https://via.placeholder.com/300x440.png?text=No+Cover';
-    };
+    const CoverImage = () => (
+        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-muted">
+            {isImageBroken || !book.cover_image_url ? (
+                <div className="flex h-full w-full flex-col items-center justify-center bg-secondary p-4 text-center text-secondary-foreground">
+                    <BookOpen className="mb-2 h-8 w-8" />
+                    <p className="line-clamp-3 font-semibold">{book.title}</p>
+                </div>
+            ) : (
+                <img
+                    src={book.cover_image_url}
+                    alt={`Cover of ${book.title}`}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    onError={handleImageError}
+                    loading="lazy"
+                />
+            )}
+        </div>
+    );
 
     return (
-        <Card className="flex flex-col overflow-hidden rounded-lg border shadow-sm transition-all hover:shadow-lg">
-            <CardHeader className="relative p-0">
-                <Link href={route('admin.books.show', book.id)}>
-                    <img src={getImageSrc()} alt={`Cover of ${book.title}`} className="h-64 w-full object-cover" onError={handleImageError} />
-                </Link>
-                {book.category && (
-                    <Badge className="absolute top-2 right-2" variant={'secondary'}>
-                        {book.category.name}
-                    </Badge>
-                )}
-            </CardHeader>
-            <CardContent className="flex-grow p-4">
-                <CardTitle className="mb-1 line-clamp-2 text-lg leading-tight font-bold">{book.title}</CardTitle>
-                <p className="text-sm text-muted-foreground">{book.author}</p>
-                <CardDescription className="mt-2 line-clamp-3 text-sm">{book.description}</CardDescription>
+        <Card className="group relative flex h-full transform flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
+            <Link href={route('admin.books.show', book.id)} className="block flex-shrink-0 p-4 pb-0">
+                <CoverImage />
+            </Link>
+
+            <CardContent className="flex flex-grow flex-col p-4">
+                <div className="mb-2 flex items-center justify-between">
+                    {book.category && <Badge variant="outline">{book.category.name}</Badge>}
+                    <div className="flex items-center text-sm text-muted-foreground">
+                        <Download className="mr-1 h-4 w-4" />
+                        <span>{book.download_count}</span>
+                    </div>
+                </div>
+                <h3 className="line-clamp-2 flex-grow leading-tight font-semibold tracking-tight">{book.title}</h3>
+                <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{book.author}</p>
             </CardContent>
-            <CardFooter className="p-4 pt-0">
-                <Link href={route('admin.books.show', book.id)} className="w-full">
-                    <Button variant="outline" className="w-full">
-                        View Details
-                    </Button>
-                </Link>
-            </CardFooter>
+
+            <div className="mt-auto border-t p-2">
+                <div className="flex items-center justify-end space-x-2">
+                    <EditBookForm book={book} categories={categories} />
+                    <DeleteBookDialog book={book} />
+                </div>
+            </div>
         </Card>
     );
 }

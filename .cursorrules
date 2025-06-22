@@ -137,79 +137,66 @@ export function BookCard({ book, onDownload }: BookCardProps) {
 }
 ```
 
-## Key Features to Implement (Modern & Cost-Effective)
+## Achievable Feature Roadmap
 
-### Progressive Web App (PWA) Digital Library
+This roadmap breaks down the project vision into manageable phases, ensuring a steady delivery of value.
 
-- Build as PWA for native app-like experience without app store costs
-- Implement service workers for offline reading and caching
-- Use free local storage solutions (IndexedDB) for offline content
-- Responsive design optimized for mobile-first experience
-- Push notifications for new books, assignments, and deadlines
-- Install prompts for home screen addition on mobile devices
+### Phase 1: Foundational MVP (Minimum Viable Product)
 
-### Advanced Search & Content Discovery
+The goal of this phase is to build the core, essential features of the e-library.
 
-- Implement full-text search with Meilisearch for fast academic content discovery
-- Use structured search with filtering by academic programs, courses, and metadata
-- Auto-complete search suggestions based on indexed content and user queries
-- Content categorization using structured taxonomies and manual tagging
-- Rule-based content organization by academic programs and course requirements
-- User-based recommendations through reading history and bookmarks tracking
+1.  **Core PWA Functionality**:
+    - Responsive, mobile-first design for all pages.
+    - Implement basic service workers for offline asset caching (CSS, JS).
+    - Add a web app manifest for "Add to Home Screen" functionality.
+2.  **Basic Book & User Management (for Admin)**:
+    - CRUD (Create, Read, Update, Delete) for Books with metadata.
+    - CRUD for Categories.
+    - View and manage Users (Students, Faculty).
+3.  **Core Student Experience**:
+    - Browse and view books by category.
+    - Basic keyword search (using default database driver first).
+    - View book details page.
+    - Simple bookmarking feature.
+4.  **Basic PDF Viewing**:
+    - Integrate `PDF.js` to render PDFs within the browser.
 
-### Modern Reading Experience
+### Phase 2: Social Engagement & Enhanced Experience
 
-- Use PDF.js (free) for progressive loading and annotations
-- Implement social reading features with shared highlights
-- Text-to-speech using Web Speech API (free browser feature)
-- Dark/light mode with customizable reading themes
-- Speed reading tools and reading time estimates
-- Cross-device bookmark and note synchronization
+With the foundation in place, this phase adds features to make the library more interactive.
 
-### Real-Time Collaboration & Social Features
+1.  **Ratings and Reviews System**:
+    - Allow users to give a 1-5 star rating to books.
+    - Allow users to write, view, and delete text reviews.
+2.  **Enhanced Reading Lists**:
+    - Upgrade bookmarking to allow multiple named reading lists per user.
+    - Ability to make reading lists public to share.
+3.  **Gamification (Lite)**:
+    - Track and display reading streaks.
+    - Simple achievement badges for milestones (e.g., "First 10 books read").
+4.  **Advanced Search Integration**:
+    - Integrate Meilisearch for powerful, fast, full-text search.
+    - Add filters to search results (by category, author).
 
-- WebSocket integration for live study groups and discussions
-- Real-time collaborative annotations using Socket.io
-- Peer-to-peer resource sharing within institution
-- Social features: ratings, reviews, and reading lists
-- Study group formation and management tools
-- Academic discussion forums integrated with resources
+### Phase 3: Advanced Collaboration & Compliance
 
-### Automated CHED Compliance (Zero-Cost)
+This phase focuses on high-impact features that establish the platform as a true digital learning hub.
 
-- Template-based report generation using Laravel exports
-- Automated data collection and aggregation from system usage
-- Real-time dashboards using Chart.js and D3.js
-- Export capabilities for CHED submission formats
-- Compliance checklist automation and tracking
-- Integration with open government data APIs
-
-### Open Source Digital Library Integration
-
-- Connect with DSpace or Omeka S for institutional repositories
-- OAI-PMH protocol support for metadata harvesting
-- Dublin Core metadata standards implementation
-- Open Educational Resources (OER) discovery and integration
-- DOI and Handle system integration for permanent links
-- MARC and BIBFRAME metadata support
-
-### Gamification & Engagement (No-Cost)
-
-- Achievement system with badges and reading streaks
-- Leaderboards for academic programs and courses
-- Reading challenges and academic competitions
-- Progress visualization with charts and milestones
-- Social recognition features for active learners
-- Integration with academic calendar for semester goals
-
-### Accessibility & Inclusivity
-
-- WCAG 2.1 AA compliance using semantic HTML
-- Screen reader optimization and keyboard navigation
-- Multi-language support for diverse student populations
-- Font size and contrast customization options
-- Voice navigation using Web Speech API
-- Simplified interfaces for users with cognitive disabilities
+1.  **Real-time Collaboration (via WebSockets)**:
+    - Implement study groups where users can join and have discussions.
+    - _Stretch Goal_: Real-time shared annotations on PDFs.
+2.  **Faculty & Course Features**:
+    - Allow faculty to create "Course Shelves" by curating reading lists.
+    - Basic analytics for faculty on student engagement.
+3.  **Full PWA Offline Support**:
+    - Cache book PDFs using service workers for offline reading.
+    - Use IndexedDB to store user data for offline access.
+4.  **Automated CHED Reporting**:
+    - Build a module to generate basic compliance reports.
+    - Export reports to CSV/PDF format.
+5.  **Accessibility Enhancements**:
+    - Implement text-to-speech for book content using the Web Speech API.
+    - Add user-customizable themes (dark/light mode, font sizes).
 
 ## Database Relationships
 
