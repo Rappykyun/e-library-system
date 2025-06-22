@@ -1,0 +1,320 @@
+# E-Library System - Cursor Rules
+
+## Project Overview
+
+This is a modern digital library system built as a Progressive Web App using Laravel (backend) and React with TypeScript (frontend). The system combines modern web technologies with CHED compliance requirements, offering an intuitive experience for academic resources. It emphasizes mobile-first design, social learning features, and zero-cost implementation using open-source technologies.
+
+**Vision**: Transform traditional academic libraries into engaging, collaborative digital learning hubs that meet modern student expectations while maintaining CHED institutional compliance.
+
+## Tech Stack (Modern & Cost-Effective)
+
+- **Backend**: Laravel 11+ with PHP 8.2+ (Free & Open Source)
+- **Frontend**: React 18+ with TypeScript, Inertia.js (Progressive Web App)
+- **Styling**: Tailwind CSS with shadcn/ui components (Zero-cost UI library)
+- **Database**: MySQL/PostgreSQL (Free & Open Source)
+- **File Storage**: Local storage with MinIO (Self-hosted, S3-compatible, Free)
+- **Search Engine**: Meilisearch (Open source, self-hosted alternative to Elasticsearch)
+- **Authentication**: Laravel Breeze with Inertia (Built-in, no external costs)
+- **Permissions**: spatie/laravel-permission package (Free Laravel package)
+- **UI Components**: shadcn/ui + Radix UI (Open source component library)
+- **Real-time**: Pusher alternative with Laravel WebSockets (Free)
+- **Analytics**: Chart.js + D3.js (Free visualization libraries)
+- **PWA**: Workbox + Service Workers (Free progressive web app tools)
+- **PDF Processing**: PDF.js (Free, browser-native PDF handling)
+
+## User Roles & Permissions
+
+### 🧑‍💼 ADMIN Features (Full Access)
+
+- **Digital Collection Management**: Upload, organize, and manage digital books with metadata tagging and CHED program alignment
+- **Smart Categorization**: Organize resources by academic programs, course codes, and CHED requirements using structured taxonomies
+- **User & Access Management**: Manage student, faculty, and staff accounts with role-based digital library access
+- **Analytics Dashboard**: Real-time usage analytics, popular content tracking, and CHED compliance metrics
+- **Advanced Search**: Powerful search with filtering by programs, courses, and academic criteria
+- **Digital Rights Management**: Control access, viewing permissions, and download policies for academic resources
+- **Mobile-First Interface**: Responsive admin panel optimized for tablets and mobile devices
+- **Open Source Integrations**: Integrate with DSpace, Fedora, or other open-source digital library platforms
+- **Automated CHED Reporting**: Generate compliance reports using built-in templates and automated data collection
+- **Content Quality Control**: Manual content verification and peer review workflows
+
+### 👨‍🏫 FACULTY Features (Academic Access)
+
+- **Course Digital Shelves**: Create virtual course libraries with drag-and-drop organization and reading lists
+- **Student Learning Analytics**: Track student engagement with reading materials and monitor usage patterns
+- **Collaborative Curation**: Build shared resource collections with other faculty and manual content recommendations
+- **Assignment Integration**: Link library resources directly to LMS assignments and course syllabi
+- **Research Collaboration Hub**: Share and discover research materials within faculty networks
+- **Mobile Teaching Tools**: Access teaching resources on mobile devices with offline capabilities
+- **Open Educational Resources**: Discover and integrate free OER content aligned with CHED curricula
+- **Citation Management**: Built-in citation tools supporting multiple academic formats
+
+### 🎓 STUDENT Features (Modern Digital Experience)
+
+- **Personalized Learning Dashboard**: Content organized by course enrollment and reading history
+- **Advanced Search & Discovery**: Keyword search with auto-complete and filtering by categories and programs
+- **Digital Reading Experience**: Progressive Web App with offline reading, note-taking, and social annotations
+- **Study Groups & Collaboration**: Form study groups, share annotations, and collaborate on research projects
+- **Mobile-First Design**: Optimized mobile experience with responsive design and touch-friendly interfaces
+- **Learning Path Tracking**: Visual progress tracking through course materials and reading assignments
+- **Social Learning Features**: Rate, review, and recommend resources to peers within academic programs
+- **Accessibility Tools**: Screen reader support, text-to-speech, and customizable reading interfaces
+- **Cross-Platform Sync**: Seamless experience across devices with cloud-based bookmarks and notes
+- **Gamified Learning**: Achievement badges, reading streaks, and academic milestone celebrations
+
+### 🏛️ MODERN CHED COMPLIANCE (Streamlined & Automated)
+
+- **Automated Compliance Tracking**: Real-time monitoring of CHED standards with automated alerts and reporting
+- **Digital Accreditation Portfolio**: Automated collection and organization of accreditation evidence
+- **Open Data Integration**: Connect with government databases and other institutions using open APIs
+- **Institutional Analytics**: Comprehensive dashboards showing program effectiveness and resource utilization
+- **Quality Assurance Workflows**: Structured content quality checks and peer review processes
+- **Inter-Institutional Networking**: Secure resource sharing networks between CHED-accredited institutions
+
+## File Structure Guidelines
+
+### Backend (Laravel)
+
+- Controllers should be organized by feature area (`Admin/`, `Student/`, `Auth/`)
+- Use Resource Controllers for CRUD operations
+- Implement proper middleware for role-based access
+- Models should include relationships and scopes
+- Use Form Requests for validation
+
+### Frontend (React/TypeScript)
+
+- Components organized by feature (`components/admin/`, `components/student/`)
+- Use TypeScript interfaces for all props and data structures
+- Implement proper error handling and loading states
+- Use shadcn/ui components consistently
+- Follow React hooks best practices
+
+## Coding Standards
+
+### Laravel Backend
+
+```php
+// Use strict typing
+declare(strict_types=1);
+
+// Use Resource Controllers
+class BookController extends Controller
+{
+    public function index(): JsonResponse
+    public function store(StoreBookRequest $request): JsonResponse
+    public function show(Book $book): JsonResponse
+    public function update(UpdateBookRequest $request, Book $book): JsonResponse
+    public function destroy(Book $book): JsonResponse
+}
+
+// Use proper middleware
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::resource('books', BookController::class);
+});
+```
+
+### React Frontend
+
+```typescript
+// Use TypeScript interfaces
+interface Book {
+  id: number;
+  title: string;
+  author: string;
+  category: Category;
+  pdf_url: string;
+  download_count: number;
+}
+
+// Use proper component structure
+export function BookCard({ book, onDownload }: BookCardProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      {/* Component content */}
+    </Card>
+  );
+}
+```
+
+## Key Features to Implement (Modern & Cost-Effective)
+
+### Progressive Web App (PWA) Digital Library
+
+- Build as PWA for native app-like experience without app store costs
+- Implement service workers for offline reading and caching
+- Use free local storage solutions (IndexedDB) for offline content
+- Responsive design optimized for mobile-first experience
+- Push notifications for new books, assignments, and deadlines
+- Install prompts for home screen addition on mobile devices
+
+### Advanced Search & Content Discovery
+
+- Implement full-text search with Meilisearch for fast academic content discovery
+- Use structured search with filtering by academic programs, courses, and metadata
+- Auto-complete search suggestions based on indexed content and user queries
+- Content categorization using structured taxonomies and manual tagging
+- Rule-based content organization by academic programs and course requirements
+- User-based recommendations through reading history and bookmarks tracking
+
+### Modern Reading Experience
+
+- Use PDF.js (free) for progressive loading and annotations
+- Implement social reading features with shared highlights
+- Text-to-speech using Web Speech API (free browser feature)
+- Dark/light mode with customizable reading themes
+- Speed reading tools and reading time estimates
+- Cross-device bookmark and note synchronization
+
+### Real-Time Collaboration & Social Features
+
+- WebSocket integration for live study groups and discussions
+- Real-time collaborative annotations using Socket.io
+- Peer-to-peer resource sharing within institution
+- Social features: ratings, reviews, and reading lists
+- Study group formation and management tools
+- Academic discussion forums integrated with resources
+
+### Automated CHED Compliance (Zero-Cost)
+
+- Template-based report generation using Laravel exports
+- Automated data collection and aggregation from system usage
+- Real-time dashboards using Chart.js and D3.js
+- Export capabilities for CHED submission formats
+- Compliance checklist automation and tracking
+- Integration with open government data APIs
+
+### Open Source Digital Library Integration
+
+- Connect with DSpace or Omeka S for institutional repositories
+- OAI-PMH protocol support for metadata harvesting
+- Dublin Core metadata standards implementation
+- Open Educational Resources (OER) discovery and integration
+- DOI and Handle system integration for permanent links
+- MARC and BIBFRAME metadata support
+
+### Gamification & Engagement (No-Cost)
+
+- Achievement system with badges and reading streaks
+- Leaderboards for academic programs and courses
+- Reading challenges and academic competitions
+- Progress visualization with charts and milestones
+- Social recognition features for active learners
+- Integration with academic calendar for semester goals
+
+### Accessibility & Inclusivity
+
+- WCAG 2.1 AA compliance using semantic HTML
+- Screen reader optimization and keyboard navigation
+- Multi-language support for diverse student populations
+- Font size and contrast customization options
+- Voice navigation using Web Speech API
+- Simplified interfaces for users with cognitive disabilities
+
+## Database Relationships
+
+```php
+// Book model relationships
+public function category(): BelongsTo
+public function program(): BelongsTo
+public function course(): BelongsToMany
+public function downloads(): HasMany
+public function bookmarks(): HasMany
+public function chedCompliance(): HasOne
+public function curriculumMapping(): HasMany
+
+// User model relationships
+public function downloads(): HasMany
+public function bookmarks(): HasMany
+public function program(): BelongsTo
+public function courses(): BelongsToMany
+public function institution(): BelongsTo
+public function academicProgress(): HasMany
+
+// Program model relationships
+public function books(): HasMany
+public function courses(): HasMany
+public function students(): HasMany
+public function faculty(): HasMany
+public function chedRequirements(): HasMany
+
+// Institution model relationships
+public function users(): HasMany
+public function programs(): HasMany
+public function complianceReports(): HasMany
+public function accreditationStatus(): HasOne
+```
+
+## API Endpoints Structure
+
+```
+/api/admin/books             - Academic book management with CHED compliance
+/api/admin/categories        - Academic category management (programs, courses)
+/api/admin/users             - User management (students, faculty, staff)
+/api/admin/programs          - Academic program management
+/api/admin/courses           - Course and curriculum management
+/api/admin/institutions      - Multi-institutional management
+/api/admin/compliance        - CHED compliance and accreditation
+/api/admin/reports           - Institutional reporting and analytics
+
+/api/faculty/courses         - Faculty course material management
+/api/faculty/students        - Student progress tracking
+/api/faculty/resources       - Faculty resource curation
+/api/faculty/research        - Research supervision and thesis management
+/api/faculty/collaboration   - Faculty collaboration tools
+
+/api/student/library         - Program-specific library browsing
+/api/student/courses         - Course-aligned resource access
+/api/student/bookmarks       - Academic bookmark management
+/api/student/downloads       - Academic download history
+/api/student/progress        - Learning progress tracking
+/api/student/research        - Research resource access
+/api/student/citations       - Citation tool integration
+
+/api/institution/compliance  - Institutional compliance monitoring
+/api/institution/sharing     - Inter-institutional resource sharing
+/api/institution/analytics   - Institutional analytics and reporting
+```
+
+## Security Guidelines
+
+- Always validate user permissions before actions
+- Sanitize file uploads and validate file types
+- Use CSRF protection for forms
+- Implement rate limiting for downloads
+- Log all admin actions for audit trail
+
+## Performance Considerations
+
+- Use eager loading for relationships
+- Implement caching for frequently accessed data
+- Optimize database queries with proper indexing
+- Use pagination for large datasets
+- Implement lazy loading for PDF previews
+
+## UI/UX Guidelines
+
+- Use consistent spacing and typography from Tailwind
+- Implement proper loading states and error handling
+- Follow accessibility best practices
+- Use responsive design for mobile compatibility
+- Implement proper form validation feedback
+
+## Development Workflow
+
+1. Always create feature branches from main
+2. Write tests for new features
+3. Use proper commit messages
+4. Review code before merging
+5. Keep dependencies up to date
+6. Document new features and changes
+
+## Testing Strategy
+
+- Unit tests for models and services
+- Feature tests for API endpoints
+- Component tests for React components
+- Integration tests for critical user flows
+- E2E tests for complete user journeys
+
+When working on this project, always consider the user role permissions, follow the established patterns, and maintain consistency with the existing codebase.
