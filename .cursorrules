@@ -145,20 +145,15 @@ This roadmap breaks down the project vision into manageable phases, ensuring a s
 
 The goal of this phase is to build the core, essential features of the e-library.
 
-1.  **Core PWA Functionality**:
-    - Responsive, mobile-first design for all pages.
-    - Implement basic service workers for offline asset caching (CSS, JS).
-    - Add a web app manifest for "Add to Home Screen" functionality.
-2.  **Basic Book & User Management (for Admin)**:
+1.  **Basic Book & User Management (for Admin)**:
     - CRUD (Create, Read, Update, Delete) for Books with metadata.
     - CRUD for Categories.
-    - View and manage Users (Students, Faculty).
-3.  **Core Student Experience**:
+ 2.   - View and manage Users (Students, Faculty).  **Core Student Experience**:
     - Browse and view books by category.
     - Basic keyword search (using default database driver first).
     - View book details page.
     - Simple bookmarking feature.
-4.  **Basic PDF Viewing**:
+3.  **Basic PDF Viewing**:
     - Integrate `PDF.js` to render PDFs within the browser.
 
 ### Phase 2: Social Engagement & Enhanced Experience

@@ -7,6 +7,7 @@ use App\Models\Book;
 use App\Models\Category;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Log;
 use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Resize;
 use Cloudinary\Transformation\Qualifier;
@@ -20,7 +21,7 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::with('category')->latest()->get();
+        $books = Book::with('category')->latest()->paginate(4);
         $categories = Category::orderBy('name')->get();
 
         return Inertia::render('admin/books/index', [
@@ -32,9 +33,7 @@ class BookController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
@@ -51,13 +50,13 @@ class BookController extends Controller
             'isbn' => 'nullable|string|max:20|unique:books',
             'pages' => 'nullable|integer',
             'language' => 'nullable|string|max:10',
-            'ebook' => 'required|file|mimes:pdf,epub|max:20480',
+            'ebook' => 'required|file|mimes:pdf,epub|max:30720',
         ]);
 
         $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
         $ebookResult = $cloudinary->uploadApi()->upload($request->file('ebook')->getRealPath(), [
             'folder' => 'ebooks',
-            'resource_type' => 'image',
+            'resource_type' => 'auto',
             'public_id' => pathinfo($request->file('ebook')->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time(),
             'format' => 'pdf',
             'pages' => true,
@@ -94,6 +93,25 @@ class BookController extends Controller
         Book::create($bookData);
 
         return Redirect::route('admin.books.index')->with('success', 'Books Successfully Created');
+    }
+    public function generateUploadSignature()
+    {
+        $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
+        $timestamp = time();
+        $folder = 'ebooks';
+
+        $signature = $cloudinary->apiUtils()->signParameters([
+            'timestamp' => $timestamp,
+            'folder' => $folder,
+        ]);
+
+        return response()->json([
+            'signature' => $signature,
+            'timestamp' => $timestamp,
+            'folder' => $folder,
+            'api_key' => config('cloudinary.api_key'),
+            'cloud_name' => config('cloudinary.cloud_name'),
+        ]);
     }
 
     /**
@@ -141,7 +159,7 @@ class BookController extends Controller
             'isbn' => 'nullable|string|max:20|unique:books,isbn,' . $book->id,
             'pages' => 'nullable|integer',
             'language' => 'nullable|string|max:10',
-            'ebook' => 'nullable|file|mimes:pdf,epub|max:20480',
+            'ebook' => 'nullable|file|mimes:pdf,epub|max:30720',
         ]);
 
         $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
@@ -151,16 +169,16 @@ class BookController extends Controller
 
             if ($book->ebook_public_id) {
                 try {
-                    $cloudinary->uploadApi()->destroy($book->ebook_public_id, ['resource_type' => 'image']);
+                    $cloudinary->uploadApi()->destroy($book->ebook_public_id, ['resource_type' => 'auto']);
                 } catch (\Exception $e) {
-                    \Log::warning('Failed to delete old ebook from Cloudinary: ' . $e->getMessage());
+                    Log::warning('Failed to delete old ebook from Cloudinary: ' . $e->getMessage());
                 }
             }
 
             // Upload new ebook
             $ebookResult = $cloudinary->uploadApi()->upload($request->file('ebook')->getRealPath(), [
                 'folder' => 'ebooks',
-                'resource_type' => 'image',
+                'resource_type' => 'auto',
                 'public_id' => pathinfo($request->file('ebook')->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time(),
                 'format' => 'pdf',
                 'pages' => true,
@@ -193,9 +211,9 @@ class BookController extends Controller
 
         if ($book->ebook_public_id) {
             try {
-                $cloudinary->uploadApi()->destroy($book->ebook_public_id, ['resource_type' => 'image']);
+                $cloudinary->uploadApi()->destroy($book->ebook_public_id, ['resource_type' => 'auto']);
             } catch (\Exception $e) {
-                \Log::warning('Failed to delete ebook form Cloudinary: ' . $e->getMessage());
+                Log::warning('Failed to delete ebook form Cloudinary: ' . $e->getMessage());
             }
         }
         $book->delete();

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger ,DialogFooter} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -44,7 +44,10 @@ export function AddBookForm({ categories }: { categories: Category[] }) {
                     <DialogTitle>Add New Book</DialogTitle>
                     <DialogDescription>Fill in the details below to add a new book</DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 space-y-6 lg:grid-cols-2">
+                <form
+                    onSubmit={handleSubmit}
+                    className="mx-auto grid max-h-[60vh] w-full max-w-6xl grid-cols-1 gap-4 overflow-y-auto pr-4 lg:grid-cols-2 lg:gap-6"
+                >
                     <div className="space-y-4">
                         <div className="space-y-4">
                             <Label htmlFor="title">Title</Label>
@@ -53,7 +56,7 @@ export function AddBookForm({ categories }: { categories: Category[] }) {
                         </div>
                         <div className="space-y-4">
                             <Label htmlFor="author">Author</Label>
-                            <Input id="title" value={data.author} onChange={(e) => setData('author', e.target.value)} />
+                            <Input id="author" value={data.author} onChange={(e) => setData('author', e.target.value)} />
                             {errors.author && <p className="mt-1 text-xs text-red-700">{errors.author}</p>}
                         </div>
                         <div className="space-y-4">
@@ -80,7 +83,7 @@ export function AddBookForm({ categories }: { categories: Category[] }) {
                         <div className="space-y-4">
                             <Label htmlFor="publisher">Publisher</Label>
                             <Input id="publisher" value={data.publisher} onChange={(e) => setData('publisher', e.target.value)} />
-                            {errors.title && <p className="mt-1 text-xs text-red-700">{errors.title}</p>}
+                            {errors.title && <p className="mt-1 text-xs text-red-700">{errors.publisher}</p>}
                         </div>
                     </div>
                     <div className="space-y-4">
@@ -112,10 +115,12 @@ export function AddBookForm({ categories }: { categories: Category[] }) {
                         </div>
                     </div>
                 </form>
-                {progress && <Progress value={progress.percentage} className="w-full" />}
-                <Button type="submit" disabled={processing} onClick={handleSubmit} size={'lg'}>
-                    {processing ? 'Uploading...' : 'Save Book'}
-                </Button>
+                <DialogFooter>
+                    {progress && <Progress value={progress.percentage} className="w-full" />}
+                    <Button type="submit" disabled={processing} onClick={handleSubmit} size={'lg'}>
+                        {processing ? 'Uploading...' : 'Save Book'}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

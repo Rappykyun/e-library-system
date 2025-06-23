@@ -98,3 +98,19 @@ export interface Role {
     id: number;
     name: string;
 }
+
+export interface PaginatedResponse<T>{
+    data: T[];
+    links: PaginatedLink[];
+    current_page: number;
+    from: number;
+    last_page: number;
+    per_page: number;
+    to: number;
+    total: number;
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    path: string;
+}

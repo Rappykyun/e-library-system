@@ -14,10 +14,9 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public function run(): void
     {
-        // Reset cached roles and permissions
+
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // create permissions
         $permissions = [
             'upload books',
             'edit books',
@@ -38,7 +37,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            // Avoid duplicate-key errors when reseeding
+
             Permission::findOrCreate($permission, 'web');
         }
 
@@ -49,15 +48,15 @@ class RolesAndPermissionsSeeder extends Seeder
         $studentRole->syncPermissions(['browse books', 'download books', 'view books', 'bookmark books']);
 
         $adminRole = Role::findOrCreate('admin', 'web');
-        $adminRole->syncPermissions(Permission::all());
+        $permissions = Permission::where('name', '!=', 'view users')->get();
+        $adminRole->syncPermissions($permissions);
 
         $superAdminRole = Role::findOrCreate('super_admin', 'web');
         $superAdminRole->syncPermissions(Permission::all());
 
-        // Optionally, make the very first user in the system a super admin
         $firstUser = \App\Models\User::first();
         if ($firstUser) {
-            $firstUser->syncRoles(['super_admin']); // ensure only super_admin role
+            $firstUser->syncRoles(['super_admin']);
         }
 
         $owner = \App\Models\User::firstOrCreate(
