@@ -33,7 +33,9 @@ class BookController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create() {}
+    public function create()
+    {
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -94,25 +96,25 @@ class BookController extends Controller
 
         return Redirect::route('admin.books.index')->with('success', 'Books Successfully Created');
     }
-    public function generateUploadSignature()
-    {
-        $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
-        $timestamp = time();
-        $folder = 'ebooks';
+    // public function generateUploadSignature()
+    // {
+    //     $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
+    //     $timestamp = time();
+    //     $folder = 'ebooks';
 
-        $signature = $cloudinary->apiUtils()->signParameters([
-            'timestamp' => $timestamp,
-            'folder' => $folder,
-        ]);
+    //     $signature = $cloudinary->apiUtils()->signParameters([
+    //         'timestamp' => $timestamp,
+    //         'folder' => $folder,
+    //     ]);
 
-        return response()->json([
-            'signature' => $signature,
-            'timestamp' => $timestamp,
-            'folder' => $folder,
-            'api_key' => config('cloudinary.api_key'),
-            'cloud_name' => config('cloudinary.cloud_name'),
-        ]);
-    }
+    //     return response()->json([
+    //         'signature' => $signature,
+    //         'timestamp' => $timestamp,
+    //         'folder' => $folder,
+    //         'api_key' => config('cloudinary.api_key'),
+    //         'cloud_name' => config('cloudinary.cloud_name'),
+    //     ]);
+    // }
 
     /**
      * Display the specified resource.

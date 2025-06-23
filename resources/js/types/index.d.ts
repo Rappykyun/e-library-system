@@ -74,6 +74,18 @@ export interface Book {
     created_at: string;
     updated_at: string;
 }
+interface BookFormData {
+    title: string;
+    author: string;
+    publisher: string;
+    isbn: string;
+    published_year: string; // HTML inputs give you strings – parse to number in handleSubmit if you need it numeric.
+    pages: string;
+    language: string;
+    category_id: string; // or number, then cast to string when binding to <Select>
+    description: string;
+    ebook: File | null;
+}
 
 export interface Paginated<T> {
     data: T[];
@@ -99,7 +111,7 @@ export interface Role {
     name: string;
 }
 
-export interface PaginatedResponse<T>{
+export interface PaginatedResponse<T> {
     data: T[];
     links: PaginatedLink[];
     current_page: number;

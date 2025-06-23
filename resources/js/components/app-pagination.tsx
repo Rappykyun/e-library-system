@@ -7,7 +7,7 @@ interface AppPaginationProps<T> {
 }
 
 export function AppPagination<T>({ data }: AppPaginationProps<T>) {
-    const { current_page, last_page, prev_page_url, next_page_url, links } = data;
+    const {  prev_page_url, next_page_url, links } = data;
 
     const pageLinks = links.slice(1, -1);
 
