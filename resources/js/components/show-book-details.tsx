@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Book, type Category } from '@/types';
 import { Link } from '@inertiajs/react';
-import { DeleteBookDialog } from './delete-book-dialog';
 import { ArrowLeft, BookOpen, Building2, Calendar, Download, Eye, FileText, Globe, Hash, Tag, User } from 'lucide-react';
 import { useState } from 'react';
+import { DeleteBookDialog } from './delete-book-dialog';
 
 interface ShowBooksDetailsProps {
     book: Book;
@@ -14,9 +14,7 @@ interface ShowBooksDetailsProps {
     showAdminActions?: boolean;
 }
 
-export function ShowBookDetails({ book, categories,showAdminActions }: ShowBooksDetailsProps) {
-
-    console.log('Categories:',categories)
+export function ShowBookDetails({ book, categories, showAdminActions }: ShowBooksDetailsProps) {
     const [imageError, setImageError] = useState(false);
 
     const handleImageError = () => {
@@ -28,6 +26,11 @@ export function ShowBookDetails({ book, categories,showAdminActions }: ShowBooks
             window.open(book.ebook_url, '_blank');
         }
     };
+        const handlePreview = () => {
+            if (book.ebook_url) {
+                window.open(book.ebook_url, '_blank');
+            }
+        };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
@@ -40,7 +43,7 @@ export function ShowBookDetails({ book, categories,showAdminActions }: ShowBooks
                             Back to Library
                         </Button>
                     </Link>
-                    
+
                     {showAdminActions && (
                         <div className="flex gap-2">
                             <EditBookForm book={book} categories={categories} />
@@ -80,8 +83,8 @@ export function ShowBookDetails({ book, categories,showAdminActions }: ShowBooks
                                             <Download className="mr-2 h-4 w-4" />
                                             Download PDF
                                         </Button>
-
-                                        <Button variant="outline" className="w-full" size="lg">
+                                        
+                                        <Button variant="outline" className="w-full" size="lg" onClick={handlePreview}>
                                             <Eye className="mr-2 h-4 w-4" />
                                             Preview Online
                                         </Button>
