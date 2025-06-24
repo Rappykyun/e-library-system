@@ -19,4 +19,14 @@ class BookController extends Controller
             'categories' => $categories
         ]);
     }
+    public function show(Book $book){
+        $book->increment('views_count');
+        $book->load('category');
+
+        $categories = Category::orderBy('name')->get();
+        return Inertia::render('student/books/show', [
+            'book' => $book,
+            'categories' => $categories
+        ]);
+    }
 }

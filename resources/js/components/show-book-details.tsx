@@ -11,9 +11,10 @@ import { useState } from 'react';
 interface ShowBooksDetailsProps {
     book: Book;
     categories: Category[];
+    showAdminActions?: boolean;
 }
 
-export function ShowBookDetails({ book, categories }: ShowBooksDetailsProps) {
+export function ShowBookDetails({ book, categories,showAdminActions }: ShowBooksDetailsProps) {
 
     console.log('Categories:',categories)
     const [imageError, setImageError] = useState(false);
@@ -33,16 +34,19 @@ export function ShowBookDetails({ book, categories }: ShowBooksDetailsProps) {
             <div className="mx-auto max-w-7xl">
                 {/* Header with back button */}
                 <div className="mb-8 flex justify-between">
-                    <Link href={route('admin.books.index')}>
+                    <Link href={route(showAdminActions ? 'admin.books.index' : 'student.books.index')}>
                         <Button variant="outline" className="mb-4">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Library
                         </Button>
                     </Link>
-                    <div className="flex gap-2">
-                        <EditBookForm book={book} categories={categories} />
-                        <DeleteBookDialog book={book}/>
-                    </div>
+                    
+                    {showAdminActions && (
+                        <div className="flex gap-2">
+                            <EditBookForm book={book} categories={categories} />
+                            <DeleteBookDialog book={book} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Main content grid */}

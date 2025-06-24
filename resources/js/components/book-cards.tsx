@@ -7,9 +7,7 @@ import { useState } from 'react';
 import { DeleteBookDialog } from './delete-book-dialog';
 import { EditBookForm } from './edit-book-form';
 
-
-
-    export function BookCard({ book, categories ,showAdminActions}: { book: Book; categories: Category[] ,showAdminActions? : boolean}) {
+export function BookCard({ book, categories, showAdminActions }: { book: Book; categories: Category[]; showAdminActions?: boolean }) {
     const [isImageBroken, setIsImageBroken] = useState(false);
 
     const handleImageError = () => {
@@ -37,14 +35,14 @@ import { EditBookForm } from './edit-book-form';
 
     return (
         <Card className="group relative flex h-full transform flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
-            <Link href={route('admin.books.show', book.id)} className="block flex-shrink-0 p-4 pb-0">
+            <Link href={route(showAdminActions ? 'admin.books.show' : 'student.books.show', book.id)} className="block flex-shrink-0 p-4 pb-0">
                 <CoverImage />
             </Link>
 
             <CardContent className="flex flex-grow flex-col p-4">
                 <div className="mb-2 flex items-center justify-between">
                     {book.category && <Badge variant="outline">{book.category.name}</Badge>}
-                    <div className="flex items-center text-sm text-muted-foreground">
+                    <div className="flex cursor-pointer items-center text-sm text-muted-foreground">
                         <Download className="mr-1 h-4 w-4" />
                         <span>{book.download_count}</span>
                     </div>
@@ -52,7 +50,8 @@ import { EditBookForm } from './edit-book-form';
                 <h3 className="line-clamp-2 flex-grow leading-tight font-semibold tracking-tight">{book.title}</h3>
                 <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{book.author}</p>
             </CardContent>
-            {showAdminActions && ( 
+
+            {showAdminActions && (
                 <div className="mt-auto border-t p-2">
                     <div className="flex items-center justify-end space-x-2">
                         <EditBookForm book={book} categories={categories} />

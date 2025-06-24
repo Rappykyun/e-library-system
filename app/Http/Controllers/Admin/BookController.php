@@ -217,4 +217,12 @@ class BookController extends Controller
         $book->delete();
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Deleted');
     }
+
+
+
+    public function download(Book $book){
+        $book->increment('download_count');
+
+        
+    }
 }
