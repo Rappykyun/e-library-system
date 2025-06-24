@@ -1,14 +1,42 @@
+import { AddBookForm } from '@/components/add-book-form';
+import { AppPagination } from '@/components/app-pagination';
+import { BookCard } from '@/components/book-cards';
 import AppLayout from '@/layouts/app-layout';
+import { PaginatedResponse, type Book, type Category } from '@/types';
 import { Head } from '@inertiajs/react';
-
-export default function BooksIndex() {
+interface BooksIndexProps {
+    books: PaginatedResponse<Book>;
+    categories: Category[];
+    
+}
+export default function BooksIndex({ books, categories }: BooksIndexProps) {
     return (
         <AppLayout>
-            <Head title="Browse Books" />
-            <div className="py-12">
+            <Head title="Manage Books" />
+            <div className="p-2 lg:py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="mb-2 flex items-center justify-between">
+                        <h1 className="text-xl font-semibold">Manage Books</h1>
+                        <AddBookForm categories={categories} />
+                    </div>
+
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">Here you can browse and search for books.</div>
+                        <div className="text-sm text-gray-500">
+                            Showing {books.from} to {books.to} of {books.total} books.
+                        </div>
+                        <div className="p-6 text-gray-900">Here you can manage books.</div>
+
+                        <div className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                            {books.data.map((book) => (
+                                <BookCard key={book.id} book={book} categories={categories} />
+                            ))}
+                        </div>
+
+                        {books.last_page > 1 && (
+                            <div className="flex justify-center p-4">
+                                <AppPagination data={books} />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -7,7 +7,9 @@ import { useState } from 'react';
 import { DeleteBookDialog } from './delete-book-dialog';
 import { EditBookForm } from './edit-book-form';
 
-export function BookCard({ book, categories }: { book: Book; categories: Category[] }) {
+
+
+    export function BookCard({ book, categories ,showAdminActions}: { book: Book; categories: Category[] ,showAdminActions? : boolean}) {
     const [isImageBroken, setIsImageBroken] = useState(false);
 
     const handleImageError = () => {
@@ -50,13 +52,14 @@ export function BookCard({ book, categories }: { book: Book; categories: Categor
                 <h3 className="line-clamp-2 flex-grow leading-tight font-semibold tracking-tight">{book.title}</h3>
                 <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{book.author}</p>
             </CardContent>
-
-            <div className="mt-auto border-t p-2">
-                <div className="flex items-center justify-end space-x-2">
-                    <EditBookForm book={book} categories={categories} />
-                    <DeleteBookDialog book={book} />
+            {showAdminActions && ( 
+                <div className="mt-auto border-t p-2">
+                    <div className="flex items-center justify-end space-x-2">
+                        <EditBookForm book={book} categories={categories} />
+                        <DeleteBookDialog book={book} />
+                    </div>
                 </div>
-            </div>
+            )}
         </Card>
     );
 }

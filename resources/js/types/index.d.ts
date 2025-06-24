@@ -126,3 +126,4 @@ export interface PaginatedResponse<T> {
     prev_page_url: string | null;
     path: string;
 }
+

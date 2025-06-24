@@ -1,18 +1,14 @@
 <?php
+namespace App\Http\Controllers\Admin;
 
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Category;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Log;
 use Cloudinary\Cloudinary;
-use Cloudinary\Transformation\Resize;
-use Cloudinary\Transformation\Qualifier;
-use PhpParser\Node\Stmt\TryCatch;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
+use Inertia\Inertia;
 
 class BookController extends Controller
 {
@@ -50,7 +46,7 @@ class BookController extends Controller
             'publisher' => 'nullable|string|max:255',
             'published_year' => 'nullable|digits:4',
             'isbn' => 'nullable|string|max:20|unique:books',
-            'pages' => 'nullable|integer',
+
             'language' => 'nullable|string|max:10',
             'ebook' => 'required|file|mimes:pdf,epub|max:30720',
         ]);
@@ -89,7 +85,7 @@ class BookController extends Controller
             'ebook_url' => $ebookResult['secure_url'],
             'ebook_public_id' => $ebookResult['public_id'],
             // Override/Set pages automatically if Cloudinary provided it
-            'pages' => $totalPages ?? $validated['pages'] ?? null,
+            'pages' => $totalPages,
         ]);
 
         Book::create($bookData);

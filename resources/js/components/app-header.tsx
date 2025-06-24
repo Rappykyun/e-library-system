@@ -52,13 +52,13 @@ const adminNavItems: NavItem[] = [];
 const studentNavItems: NavItem[] = [
     {
         title: 'Browse Books',
-        href: '/books',
+        href: '/student/books',
         icon: Library,
         permission: 'browse books',
     },
     {
         title: 'My Bookmarks',
-        href: '/bookmarks',
+        href: '/student/bookmarks',
         icon: BookMarked,
         permission: 'bookmark books',
     },
