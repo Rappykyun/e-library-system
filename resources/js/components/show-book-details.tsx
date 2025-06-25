@@ -22,15 +22,14 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
     };
 
     const handleDownload = () => {
+        const downloadUrl = route('books.download', book.id);
+        window.location.href = downloadUrl;
+    };
+    const handlePreview = () => {
         if (book.ebook_url) {
             window.open(book.ebook_url, '_blank');
         }
     };
-        const handlePreview = () => {
-            if (book.ebook_url) {
-                window.open(book.ebook_url, '_blank');
-            }
-        };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
@@ -79,12 +78,18 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
 
                                     {/* Action buttons */}
                                     <div className="space-y-3">
-                                        <Button onClick={handleDownload} className="w-full" size="lg" disabled={!book.ebook_url}>
+                                        <Button onClick={handleDownload} className="w-full cursor-pointer" size="lg" disabled={!book.ebook_url}>
                                             <Download className="mr-2 h-4 w-4" />
                                             Download PDF
                                         </Button>
-                                        
-                                        <Button variant="outline" className="w-full" size="lg" onClick={handlePreview}>
+
+                                        <Button
+                                            variant="outline"
+                                            className="w-full cursor-pointer"
+                                            size="lg"
+                                            onClick={handlePreview}
+                                            disabled={!book.ebook_url}
+                                        >
                                             <Eye className="mr-2 h-4 w-4" />
                                             Preview Online
                                         </Button>

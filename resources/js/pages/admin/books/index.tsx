@@ -1,6 +1,7 @@
 import { AddBookForm } from '@/components/add-book-form';
 import { AppPagination } from '@/components/app-pagination';
 import { BookCard } from '@/components/book-cards';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category } from '@/types';
 import { Head } from '@inertiajs/react';
@@ -12,10 +13,10 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
     return (
         <AppLayout>
             <Head title="Manage Books" />
-            <div className="p-2 lg:py-12">
+            <ScrollArea className="h-[calc(100vh-145px)] p-2 lg:py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-2 flex items-center justify-between">
-                        <h1 className="text-xl font-semibold">Manage Books</h1>
+                        <h1 className="text-2xl font-semibold">Manage Books</h1>
                         <AddBookForm categories={categories} />
                     </div>
 
@@ -38,7 +39,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                         )}
                     </div>
                 </div>
-            </div>
+            </ScrollArea>
         </AppLayout>
     );
 }
