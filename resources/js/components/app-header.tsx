@@ -11,7 +11,7 @@ import { usePermission } from '@/hooks/use-permission';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookMarked, Bookmark, LayoutGrid, Library, Menu, Search, Settings, Users } from 'lucide-react';
+import { BookMarked, Bookmark, LayoutGrid, Library, Menu, Settings, Users } from 'lucide-react';
 import AppLogoIcon from './app-logo-icon';
 
 const mainNavItems: NavItem[] = [
@@ -206,11 +206,6 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </NavigationMenuList>
                         </NavigationMenu>
 
-                        <div className="relative flex items-center space-x-1">
-                            <Button variant="ghost" size="icon" className="group h-9 w-9 cursor-pointer">
-                                <Search className="!size-5 opacity-80 group-hover:opacity-100" />
-                            </Button>
-                        </div>
                         {auth.user && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

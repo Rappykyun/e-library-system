@@ -1,13 +1,36 @@
 import { AppPagination } from '@/components/app-pagination';
 import { BookCard } from '@/components/book-cards';
+import { BookFilters } from '@/components/book-filter';
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import { useDebounce } from 'use-debounce';
+
 interface BooksIndexProps {
     books: PaginatedResponse<Book>;
     categories: Category[];
+    filters: { search: string; category: string };
 }
-export default function BooksIndex({ books, categories }: BooksIndexProps) {
+export default function BooksIndex({ books, categories, filters }: BooksIndexProps) {
+    const [localFilters, setLocalFilters] = useState({
+        search: filters.search ?? '',
+        category: filters.category ?? 'all',
+    });
+
+    const [debouncedFilters] = useDebounce(localFilters, 100);
+    const handleFilterChange = (name: string, value: string) => {
+        setLocalFilters((prev) => ({ ...prev, [name]: value }));
+    };
+
+  
+
+    useEffect(() => {
+        router.get(route('student.books.index'), debouncedFilters, {
+            preserveState: true,
+            replace: true,
+        });
+    }, [debouncedFilters]);
     return (
         <AppLayout>
             <Head title="Manage Books" />
@@ -15,6 +38,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-2 flex items-center justify-between">
                         <h1 className="text-2xl font-semibold">Browse Books</h1>
+                        <BookFilters categories={categories} filters={localFilters} onFilterChange={handleFilterChange} />
                     </div>
 
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
