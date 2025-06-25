@@ -1,6 +1,5 @@
 import { AppPagination } from '@/components/app-pagination';
 import { BookCard } from '@/components/book-cards';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category } from '@/types';
 import { Head } from '@inertiajs/react';
@@ -12,7 +11,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
     return (
         <AppLayout>
             <Head title="Manage Books" />
-            <ScrollArea className=" p-2 lg:py-12">
+            <div className="p-2 lg:py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-2 flex items-center justify-between">
                         <h1 className="text-2xl font-semibold">Browse Books</h1>
@@ -37,7 +36,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                         )}
                     </div>
                 </div>
-            </ScrollArea>
+            </div>
         </AppLayout>
     );
 }

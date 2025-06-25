@@ -113,7 +113,7 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
 
                             {/* Description */}
                             {book.description && (
-                                <Card>
+                                <Card className="py-4">
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <FileText className="h-5 w-5" />
@@ -127,7 +127,7 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
                             )}
 
                             {/* Book details */}
-                            <Card>
+                            <Card className="py-4">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <BookOpen className="h-5 w-5" />
@@ -198,7 +198,7 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
                             </Card>
 
                             {/* Additional metadata */}
-                            <Card>
+                            <Card className="py-4">
                                 <CardHeader>
                                     <CardTitle>Library Information</CardTitle>
                                 </CardHeader>
