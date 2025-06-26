@@ -72,6 +72,7 @@ export interface Book {
     pages: number | null;
     language: string | null;
     download_count: number;
+    views_count: number;
     created_at: string;
     updated_at: string;
 }

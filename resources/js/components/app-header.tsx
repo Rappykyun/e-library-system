@@ -100,8 +100,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </Link>
                         </div>
                         <div className="flex flex-col">
-                            <h1 className="text-lg font-semibold text-white">COMMISSION ON HIGHER EDUCATION - REGIONAL OFFICE XII</h1>{' '}
-                            <h1 className="text-md text-white">E-Library</h1>
+                            <h1 className="text-lg font-semibold text-white tracking-wide">COMMISSION ON HIGHER EDUCATION - REGIONAL OFFICE XII</h1>{' '}
+                            <h1 className="text-md text-white tracking-wide">E-Library</h1>
                         </div>
                     </div>
                 </div>
