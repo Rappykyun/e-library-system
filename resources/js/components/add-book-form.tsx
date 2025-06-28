@@ -1,18 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
+import { Label } from '@/components/ui/label';  
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { Textarea } from '@/components/ui/textarea';
 import { type Category } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
 
 export function AddBookForm({ categories }: { categories: Category[] }) {
     const [open, setOpen] = useState(false);
-    const { data, setData, post, processing, errors, progress, reset } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
         author: '',
         publisher: '',
@@ -116,9 +116,8 @@ export function AddBookForm({ categories }: { categories: Category[] }) {
                     </div>
                 </form>
                 <DialogFooter>
-                    {progress && <Progress value={progress.percentage} className="w-full" />}
                     <Button type="submit" disabled={processing} onClick={handleSubmit} size={'lg'}>
-                        {processing ? 'Uploading...' : 'Save Book'}
+                        {processing ? <LoaderCircle className="h-4 w-4 animate-spin" /> : 'Save Book'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -59,7 +59,8 @@ export default function BooksIndex({ books, categories, filters }: BooksIndexPro
                                 <h3 className="mt-4 text-xl font-semibold text-gray-800">No Books Found</h3>
                                 <p className="mt-2 text-sm text-gray-500">
                                     We couldn't find any books matching your search. Try adjusting your filters.
-                                </p>
+                                    </p>
+                                    
                             </div>
                         )}
                         {books.last_page > 1 && (

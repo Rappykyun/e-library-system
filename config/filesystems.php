@@ -41,7 +41,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
@@ -67,6 +67,14 @@ return [
             'url' => env('CLOUDINARY_URL'),
             'secure' => (bool) env('CLOUDINARY_SECURE', true),
             'prefix' => env('CLOUDINARY_PREFIX'),
+        ],
+        'azure' => [
+            'driver' => 'azure',
+            'connection_string' => env('AZURE_STORAGE_CONNECTION_STRING'),
+            'container' => env('AZURE_STORAGE_CONTAINER'),
+            'url' => env('AZURE_STORAGE_URL'),
+            'throw' => false,
+            'report' => false,
         ],
 
     ],

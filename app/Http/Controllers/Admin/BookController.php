@@ -1,14 +1,17 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Category;
+use App\Services\AzureBlobService;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class BookController extends Controller
 {
@@ -36,7 +39,7 @@ class BookController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, AzureBlobService $azureBlobService)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -46,51 +49,40 @@ class BookController extends Controller
             'publisher' => 'nullable|string|max:255',
             'published_year' => 'nullable|digits:4',
             'isbn' => 'nullable|string|max:20|unique:books',
-
             'language' => 'nullable|string|max:10',
             'ebook' => 'required|file|mimes:pdf,epub|max:30720',
         ]);
 
-        $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
-        $ebookResult = $cloudinary->uploadApi()->upload($request->file('ebook')->getRealPath(), [
-            'folder' => 'ebooks',
-            'resource_type' => 'auto',
-            'public_id' => pathinfo($request->file('ebook')->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time(),
-            'format' => 'pdf',
-            'pages' => true,
-        ]);
+        $file = $request->file('ebook');
+        // Generate a clean, unique blob name (no container duplication and URL-safe)
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        $sanitizedName = Str::slug($originalName);
+        $blobName = uniqid() . '_' . $sanitizedName . '.' . $extension;
 
+        $uploadResult = $azureBlobService->uploadFile($file, $blobName);
+
+        if (!$uploadResult['success']) {
+            return back()->withErrors(['ebook' => 'Failed to upload file to Azure storage: ' . $uploadResult['error']]);
+        }
+
+        $uploadUrl = $uploadResult['url'];
+
+        // Generate Cloudinary fetch URL for thumbnail
         $cloudName = env('CLOUDINARY_CLOUD_NAME');
-        $coverImagePublicId = $ebookResult['public_id'];
-        $finalCoverUrl = "https://res.cloudinary.com/{$cloudName}/image/upload/c_fill,w_400,h_600,q_auto,f_jpg,pg_1/{$coverImagePublicId}.pdf";
-        $totalPages = $ebookResult['pages'] ?? null;
-
-
-
-        // Generate cover image URL from the first page of the PDF (page 1)
-        $cloudName = env('CLOUDINARY_CLOUD_NAME');
-        $publicId = $ebookResult['public_id'];
-
-        // Total number of pages reported by Cloudinary (PDFs only)
-        $totalPages = $ebookResult['pages'] ?? null;
-
-        // Single transformation URL (400x600, cropped, auto quality, jpg format)
-        $finalCoverUrl = "https://res.cloudinary.com/{$cloudName}/image/upload/c_fill,w_400,h_600,q_auto,f_jpg,pg_1/{$publicId}.pdf";
-
-
+        $encodedSource = urlencode($uploadUrl);
+        $finalCoverUrl = "https://res.cloudinary.com/{$cloudName}/image/fetch/"
+            . "c_fill,w_400,h_600,q_auto,f_jpg,pg_1/{$encodedSource}";
 
         $bookData = array_merge($validated, [
             'cover_image_url' => $finalCoverUrl,
-            'cover_image_public_id' => $ebookResult['public_id'],
-            'ebook_url' => $ebookResult['secure_url'],
-            'ebook_public_id' => $ebookResult['public_id'],
-            // Override/Set pages automatically if Cloudinary provided it
-            'pages' => $totalPages,
+            'ebook_url' => $uploadUrl,
+            'ebook_public_id' => $blobName,
         ]);
 
         Book::create($bookData);
 
-        return Redirect::route('admin.books.index')->with('success', 'Books Successfully Created');
+        return Redirect::route('admin.books.index')->with('success', 'Book Successfully Created');
     }
     // public function generateUploadSignature()
     // {
@@ -145,7 +137,7 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Book $book)
+    public function update(Request $request, Book $book, AzureBlobService $azureBlobService)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -160,38 +152,39 @@ class BookController extends Controller
             'ebook' => 'nullable|file|mimes:pdf,epub|max:30720',
         ]);
 
-        $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
-
         $bookData = $validated;
-        if ($request->hasFile('ebook')) {
 
+        if ($request->hasFile('ebook')) {
+            // Delete old PDF from Azure
             if ($book->ebook_public_id) {
-                try {
-                    $cloudinary->uploadApi()->destroy($book->ebook_public_id, ['resource_type' => 'auto']);
-                } catch (\Exception $e) {
-                    Log::warning('Failed to delete old ebook from Cloudinary: ' . $e->getMessage());
-                }
+                $azureBlobService->deleteFile($book->ebook_public_id);
             }
 
-            // Upload new ebook
-            $ebookResult = $cloudinary->uploadApi()->upload($request->file('ebook')->getRealPath(), [
-                'folder' => 'ebooks',
-                'resource_type' => 'auto',
-                'public_id' => pathinfo($request->file('ebook')->getClientOriginalName(), PATHINFO_FILENAME) . '_' . time(),
-                'format' => 'pdf',
-                'pages' => true,
-            ]);
+            // Upload new PDF to Azure
+            $newFile = $request->file('ebook');
+            $originalName = pathinfo($newFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $newFile->getClientOriginalExtension();
+            $sanitizedName = Str::slug($originalName);
+            $newBlobName = uniqid() . '_' . $sanitizedName . '.' . $extension;
+
+            $uploadResult = $azureBlobService->uploadFile($newFile, $newBlobName);
+
+            if (!$uploadResult['success']) {
+                return back()->withErrors(['ebook' => 'Failed to upload file to Azure storage: ' . $uploadResult['error']]);
+            }
+
+            $newUrl = $uploadResult['url'];
+
+            // Generate new Cloudinary fetch thumbnail
             $cloudName = env('CLOUDINARY_CLOUD_NAME');
-            $publicId = $ebookResult['public_id'];
-            $totalPages = $ebookResult['pages'] ?? null;
-            $finalCoverUrl = "https://res.cloudinary.com/{$cloudName}/image/upload/c_fill,w_400,h_600,q_auto,f_jpg,pg_1/{$publicId}.pdf";
+            $encodedSource = urlencode($newUrl);
+            $finalCoverUrl = "https://res.cloudinary.com/{$cloudName}/image/fetch/"
+                . "c_fill,w_400,h_600,q_auto,f_jpg,pg_1/{$encodedSource}";
 
             $bookData = array_merge($bookData, [
                 'cover_image_url' => $finalCoverUrl,
-                'cover_image_public_id' => $ebookResult['public_id'],
-                'ebook_url' => $ebookResult['secure_url'],
-                'ebook_public_id' => $ebookResult['public_id'],
-                'pages' => $totalPages ?? $validated['pages'] ?? $book->pages,
+                'ebook_url' => $newUrl,
+                'ebook_public_id' => $newBlobName,
             ]);
         }
 
@@ -203,26 +196,27 @@ class BookController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(book $book)
+    public function destroy(book $book, AzureBlobService $azureBlobService)
     {
-        $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
-
         if ($book->ebook_public_id) {
-            try {
-                $cloudinary->uploadApi()->destroy($book->ebook_public_id, ['resource_type' => 'auto']);
-            } catch (\Exception $e) {
-                Log::warning('Failed to delete ebook form Cloudinary: ' . $e->getMessage());
-            }
+            $azureBlobService->deleteFile($book->ebook_public_id);
         }
+
         $book->delete();
+
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Deleted');
     }
 
 
 
-    public function download(Book $book){
+    public function download(Book $book)
+    {
         $book->increment('download_count');
 
-        
+        if ($book->ebook_url) {
+            return Redirect::away($book->ebook_url);
+        }
+
+        return back()->with('error', 'No downloadable file found for this book.');
     }
 }
