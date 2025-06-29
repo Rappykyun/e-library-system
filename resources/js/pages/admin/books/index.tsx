@@ -40,15 +40,15 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                             <TableBody>
                                 {books.data.map((book) => (
                                     <TableRow key={book.id}>
-                                        <TableCell className="font-medium">
+                                        <TableCell className="font-medium ">
                                             <div className="flex items-center gap-2">
                                                 <img src={book.cover_image_url} alt={book.title} className="h-30 w-25 object-cover" />
                                                 {book.title}
                                             </div>
                                         </TableCell>
-                                        <TableCell>{book.author}</TableCell>
-                                        <TableCell>{book.category?.name}</TableCell>
-                                        <TableCell>{book.views_count}</TableCell>
+                                        <TableCell className='item-center'>{book.author}</TableCell>
+                                        <TableCell className='item-center'>{book.category?.name}</TableCell>
+                                        <TableCell className='items-center'>{book.views_count}</TableCell>
                                         <TableCell>{book.download_count}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end space-x-2">

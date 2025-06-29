@@ -37,8 +37,9 @@ class AzureBlobService
         $content = file_get_contents($file->getRealPath());
         $contentLength = strlen($content);
         $contentType = $file->getMimeType();
+        $originalFileName = $file->getClientOriginalName();
 
-        $headers = $this->generateHeaders('PUT', $blobName, $contentLength, $contentType);
+        $headers = $this->generateHeaders('PUT', $blobName, $contentLength, $contentType, $originalFileName);
 
         try {
             $response = Http::withHeaders($headers)
@@ -101,7 +102,7 @@ class AzureBlobService
         }
     }
 
-    private function generateHeaders(string $method, string $blobName, int $contentLength = 0, string $contentType = ''): array
+    private function generateHeaders(string $method, string $blobName, int $contentLength = 0, string $contentType = '', string $originalFileName = ''): array
     {
         // Generate RFC1123 date string for the x-ms-date header.
         $rfc1123Date = Carbon::now('UTC')->format('D, d M Y H:i:s') . ' GMT';
@@ -118,6 +119,9 @@ class AzureBlobService
             $headers['x-ms-blob-type'] = 'BlockBlob';
             $headers['Content-Length'] = $contentLength;
             $headers['Content-Type'] = $contentType;
+            if ($originalFileName) {
+                $headers['x-ms-blob-content-disposition'] = 'attachment; filename="' . $originalFileName . '"';
+            }
         }
 
         /**

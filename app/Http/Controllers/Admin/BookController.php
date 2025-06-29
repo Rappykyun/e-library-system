@@ -32,9 +32,7 @@ class BookController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-    }
+    public function create() {}
 
     /**
      * Store a newly created resource in storage.
@@ -213,10 +211,15 @@ class BookController extends Controller
     {
         $book->increment('download_count');
 
-        if ($book->ebook_url) {
-            return Redirect::away($book->ebook_url);
+        if (!$book->ebook_url) {
+            return back()->with('error', 'No downloadable file found for this book.');
         }
 
-        return back()->with('error', 'No downloadable file found for this book.');
+        // Create a file name for the download.
+        $fileName = Str::slug($book->title) . '.pdf';
+
+        return response()->streamDownload(function () use ($book) {
+            echo file_get_contents($book->ebook_url);
+        }, $fileName);
     }
 }
