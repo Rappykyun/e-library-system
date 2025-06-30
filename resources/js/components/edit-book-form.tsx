@@ -23,7 +23,7 @@ export function EditBookForm({ book, categories = [] }: { book: Book; categories
         category_id: book.category?.id?.toString() || '',
         description: book.description || '',
         ebook: null as File | null,
-        _method: 'PUT',
+    
     });
 
     const handleSubmit: FormEventHandler = (e) => {
