@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Smalot\PdfParser\Parser;
 
 class BookController extends Controller
 {
@@ -52,6 +53,14 @@ class BookController extends Controller
         ]);
 
         $file = $request->file('ebook');
+
+        $parser = new Parser();
+        $pageCount = null;
+
+        if($file->getMimeType() === 'application/pdf'){
+            $pdf = $parser->parseFile($file->getRealPath());
+            $pageCount = count($pdf->getPages());
+        }
         // Generate a clean, unique blob name (no container duplication and URL-safe)
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
@@ -76,6 +85,7 @@ class BookController extends Controller
             'cover_image_url' => $finalCoverUrl,
             'ebook_url' => $uploadUrl,
             'ebook_public_id' => $blobName,
+            'pages' => $pageCount,
         ]);
 
         Book::create($bookData);
@@ -159,13 +169,23 @@ class BookController extends Controller
             }
 
             // Upload new PDF to Azure
-            $newFile = $request->file('ebook');
-            $originalName = pathinfo($newFile->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension = $newFile->getClientOriginalExtension();
+            $file = $request->file('ebook');
+
+
+            $parser = new Parser();
+            $pageCount = null;
+
+            if ($file->getMimeType() === 'application/pdf') {
+                $pdf = $parser->parseFile($file->getRealPath());
+                $pageCount = count($pdf->getPages());
+            }
+
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
             $sanitizedName = Str::slug($originalName);
             $newBlobName = uniqid() . '_' . $sanitizedName . '.' . $extension;
 
-            $uploadResult = $azureBlobService->uploadFile($newFile, $newBlobName);
+            $uploadResult = $azureBlobService->uploadFile($file, $newBlobName);
 
             if (!$uploadResult['success']) {
                 return back()->withErrors(['ebook' => 'Failed to upload file to Azure storage: ' . $uploadResult['error']]);
@@ -183,6 +203,7 @@ class BookController extends Controller
                 'cover_image_url' => $finalCoverUrl,
                 'ebook_url' => $newUrl,
                 'ebook_public_id' => $newBlobName,
+                'pages' =>$pageCount,
             ]);
         }
 
