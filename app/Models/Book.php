@@ -25,7 +25,7 @@ class Book extends Model
         'ebook_url',
         'ebook_public_id',
         'views_count',
-
+        'thumbnail_public_id',
     ];
 
     public function category(){

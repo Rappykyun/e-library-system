@@ -19,6 +19,8 @@
         "laravel/tinker": "^2.10.1",
         "smalot/pdfparser": "^2.12",
         "spatie/laravel-permission": "^6.20",
+        "spatie/pdf-to-image": "*",
+        "symfony/process": "^7.3",
         "tightenco/ziggy": "^2.4"
     },
     "require-dev": {

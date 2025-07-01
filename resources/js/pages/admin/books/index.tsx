@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Eye } from 'lucide-react';
+import { BookOpen, Eye } from 'lucide-react';
 
 interface BooksIndexProps {
     books: PaginatedResponse<Book>;
@@ -29,6 +29,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Thumbnail</TableHead>
                                     <TableHead>Title</TableHead>
                                     <TableHead>Author</TableHead>
                                     <TableHead>Category</TableHead>
@@ -40,20 +41,35 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                             <TableBody>
                                 {books.data.map((book) => (
                                     <TableRow key={book.id}>
-                                        <TableCell className="font-medium ">
-                                            <div className="flex items-center gap-2">
-                                                <img src={book.cover_image_url} alt={book.title} className="h-30 w-25 object-cover" />
-                                                {book.title}
+                                        <TableCell className="w-20">
+                                            <div className="h-30 w-24 overflow-hidden rounded border">
+                                                {book.cover_image_url ? (
+                                                    <img
+                                                        src={book.cover_image_url}
+                                                        alt={`Thumbnail of ${book.title}`}
+                                                        className="h-full w-full object-cover"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center">
+                                                        <BookOpen className="h-6 w-6 text-muted-foreground" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </TableCell>
-                                        <TableCell className='item-center'>{book.author}</TableCell>
-                                        <TableCell className='item-center'>{book.category?.name}</TableCell>
-                                        <TableCell className='items-center'>{book.views_count}</TableCell>
+                                        <TableCell className="font-medium">
+                                            <div className="max-w-xs">
+                                                <p className="truncate font-semibold">{book.title}</p>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{book.author}</TableCell>
+                                        <TableCell>{book.category?.name}</TableCell>
+                                        <TableCell>{book.views_count}</TableCell>
                                         <TableCell>{book.download_count}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end space-x-2">
                                                 <Link href={route('admin.books.show', book.id)}>
-                                                    <Button variant="outline" className="cursor-pointer">
+                                                    <Button variant="outline" size="sm">
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View
                                                     </Button>

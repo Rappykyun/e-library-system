@@ -3,36 +3,28 @@ import { Card, CardContent } from '@/components/ui/card';
 import { type Book, type Category } from '@/types';
 import { Link } from '@inertiajs/react';
 import { BookOpen, Download } from 'lucide-react';
-import { useState } from 'react';
 import { DeleteBookDialog } from './delete-book-dialog';
 import { EditBookForm } from './edit-book-form';
 
+
+
 export function BookCard({ book, categories, showAdminActions }: { book: Book; categories: Category[]; showAdminActions?: boolean }) {
-    const [isImageBroken, setIsImageBroken] = useState(false);
-
-    const handleImageError = () => {
-        setIsImageBroken(true);
-    };
-
     const CoverImage = () => (
         <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-muted">
-            {isImageBroken || !book.cover_image_url ? (
-                <div className="flex h-full w-full flex-col items-center justify-center bg-secondary p-4 text-center text-secondary-foreground">
-                    <BookOpen className="mb-2 h-8 w-8" />
-                    <p className="line-clamp-3 font-semibold">{book.title}</p>
-                </div>
+            {book.cover_image_url ? (
+            <img
+                src={book.cover_image_url}
+                alt={book.title}
+                className="h-full w-full object-cover"
+            />
             ) : (
-                <img
-                    src={book.cover_image_url}
-                    alt={`Cover of ${book.title}`}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    onError={handleImageError}
-                    loading="lazy"
-                />
+            <div className="flex h-full w-full flex-col items-center justify-center bg-secondary p-4 text-center text-secondary-foreground">
+                <BookOpen className="mb-2 h-8 w-8" />
+                <p className="line-clamp-3 font-semibold">{book.title}</p>
+            </div>
             )}
         </div>
     );
-
     return (
         <Card className="group relative flex h-full transform flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-xl">
             <Link href={route(showAdminActions ? 'admin.books.show' : 'student.books.show', book.id)} className="block flex-shrink-0 p-4 pb-0">

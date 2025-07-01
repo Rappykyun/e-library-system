@@ -39,14 +39,26 @@ class AzureBlobService
         $contentType = $file->getMimeType();
         $originalFileName = $file->getClientOriginalName();
 
+        Log::info('Starting Azure upload', [
+            'file_size' => $contentLength,
+            'file_name' => $originalFileName,
+            'blob_name' => $blobName
+        ]);
+
         $headers = $this->generateHeaders('PUT', $blobName, $contentLength, $contentType, $originalFileName);
 
         try {
+            // Increase timeout for large files - calculate based on file size
+            $timeoutSeconds = max(120, min(600, ceil($contentLength / (1024 * 1024)) * 30)); // 30 seconds per MB, min 2 minutes, max 10 minutes
+
             $response = Http::withHeaders($headers)
+                ->timeout($timeoutSeconds) // Dynamic timeout based on file size
+                ->connectTimeout(30) // 30 seconds to establish connection
                 ->withBody($content, $contentType)
                 ->put($url);
 
             if ($response->successful()) {
+                Log::info('Azure upload successful', ['blob_name' => $blobName]);
                 return [
                     'success' => true,
                     'url' => $url,
@@ -56,12 +68,16 @@ class AzureBlobService
 
             // If the container doesn't exist, create it once and retry
             if ($response->status() === 404 && str_contains($response->body(), 'ContainerNotFound')) {
+                Log::info('Container not found, creating and retrying');
                 if ($this->createContainer()) {
                     $response = Http::withHeaders($headers)
+                        ->timeout($timeoutSeconds)
+                        ->connectTimeout(30)
                         ->withBody($content, $contentType)
                         ->put($url);
 
                     if ($response->successful()) {
+                        Log::info('Azure upload successful after container creation', ['blob_name' => $blobName]);
                         return [
                             'success' => true,
                             'url' => $url,
@@ -73,16 +89,59 @@ class AzureBlobService
 
             Log::error('Azure Blob Upload Failed', [
                 'status' => $response->status(),
+                'body' => $response->body(),
+                'file_size' => $contentLength,
+                'timeout_used' => $timeoutSeconds
+            ]);
+
+            return ['success' => false, 'error' => 'Upload failed: ' . $response->body()];
+        } catch (\Exception $e) {
+            Log::error('Azure Blob Upload Exception', [
+                'error' => $e->getMessage(),
+                'file_size' => $contentLength,
+                'blob_name' => $blobName
+            ]);
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    public function uploadRawContent(string $content, string $blobName, string $contentType): array
+    {
+        if (!$this->isConfigured()) {
+            return ['success' => false, 'error' => 'Azure Blob Storage is not configured.'];
+        }
+
+        $url = "{$this->baseUrl}/{$this->containerName}/{$blobName}";
+        $contentLength = strlen($content);
+
+        $headers = $this->generateHeaders('PUT', $blobName, $contentLength, $contentType);
+
+        try {
+            // Thumbnails are usually small, but still give reasonable timeout
+            $response = Http::withHeaders($headers)
+                ->timeout(60) // 1 minute for thumbnails
+                ->connectTimeout(15)
+                ->withBody($content, $contentType)
+                ->put($url);
+
+            if ($response->successful()) {
+                return [
+                    'success' => true,
+                    'url' => $url,
+                    'blob_name' => $blobName,
+                ];
+            }
+
+            Log::error('Azure Blob Raw Upload Failed', [
+                'status' => $response->status(),
                 'body' => $response->body()
             ]);
 
             return ['success' => false, 'error' => 'Upload failed: ' . $response->body()];
         } catch (\Exception $e) {
-            Log::error('Azure Blob Upload Exception', ['error' => $e->getMessage()]);
+            Log::error('Azure Blob Raw Upload Exception', ['error' => $e->getMessage()]);
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
-
     public function deleteFile(string $blobName): bool
     {
         if (!$this->isConfigured()) {
@@ -100,6 +159,14 @@ class AzureBlobService
             Log::error('Azure Blob Delete Exception', ['error' => $e->getMessage()]);
             return false;
         }
+    }
+
+    /**
+     * Get the public, permanent URL for a blob.
+     */
+    public function getPublicUrl(string $blobName): string
+    {
+        return "https://{$this->accountName}.blob.core.windows.net/{$this->containerName}/{$blobName}";
     }
 
     private function generateHeaders(string $method, string $blobName, int $contentLength = 0, string $contentType = '', string $originalFileName = ''): array

@@ -13,9 +13,19 @@ use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Smalot\PdfParser\Parser;
+use Ottosmops\Pdftothumb\Converter;
+use Illuminate\Http\UploadedFile;
+use Symfony\Component\Process\Process;
 
 class BookController extends Controller
 {
+    protected $azureBlobService;
+
+    public function __construct(AzureBlobService $azureBlobService)
+    {
+        $this->azureBlobService = $azureBlobService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -33,12 +43,14 @@ class BookController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create() {}
+    public function create()
+    {
+    }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, AzureBlobService $azureBlobService)
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -54,63 +66,181 @@ class BookController extends Controller
 
         $file = $request->file('ebook');
 
-        $parser = new Parser();
-        $pageCount = null;
-
-        if($file->getMimeType() === 'application/pdf'){
-            $pdf = $parser->parseFile($file->getRealPath());
-            $pageCount = count($pdf->getPages());
-        }
-        // Generate a clean, unique blob name (no container duplication and URL-safe)
+        // Generate unique identifiers
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
         $sanitizedName = Str::slug($originalName);
-        $blobName = uniqid() . '_' . $sanitizedName . '.' . $extension;
+        $uniqueId = uniqid();
 
-        $uploadResult = $azureBlobService->uploadFile($file, $blobName);
+        $pdfBlobName = 'ebooks/' . $uniqueId . '_' . $sanitizedName . '.' . $extension;
+        $thumbnailBlobName = 'thumbnails/' . $uniqueId . '_' . $sanitizedName . '.jpg';
+
+        // 1. Upload PDF to Azure
+        $uploadResult = $this->azureBlobService->uploadFile($file, $pdfBlobName);
 
         if (!$uploadResult['success']) {
             return back()->withErrors(['ebook' => 'Failed to upload file to Azure storage: ' . $uploadResult['error']]);
         }
 
-        $uploadUrl = $uploadResult['url'];
+        $pdfUrl = $this->azureBlobService->getPublicUrl($pdfBlobName);
+        $thumbnailUrl = null;
+        $thumbnailPublicId = null;
 
-        // Generate Cloudinary fetch URL for thumbnail
-        $cloudName = env('CLOUDINARY_CLOUD_NAME');
-        $encodedSource = urlencode($uploadUrl);
-        $finalCoverUrl = "https://res.cloudinary.com/{$cloudName}/image/fetch/"
-            . "c_fill,w_400,h_600,q_auto,f_jpg,pg_1/{$encodedSource}";
+        // 2. Generate thumbnail if it's a PDF
+        if ($file->getMimeType() === 'application/pdf') {
+            try {
+                $thumbnailResult = $this->generatePdfThumbnail($file, $thumbnailBlobName);
 
+                if ($thumbnailResult['success']) {
+                    $thumbnailUrl = $thumbnailResult['url'];
+                    $thumbnailPublicId = $thumbnailBlobName;
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to generate PDF thumbnail: ' . $e->getMessage());
+                // Continue without thumbnail - not a critical error
+            }
+        }
+
+        // 3. Save book to database
         $bookData = array_merge($validated, [
-            'cover_image_url' => $finalCoverUrl,
-            'ebook_url' => $uploadUrl,
-            'ebook_public_id' => $blobName,
-            'pages' => $pageCount,
+            'ebook_url' => $pdfUrl,
+            'ebook_public_id' => $pdfBlobName,
+            'cover_image_url' => $thumbnailUrl,
+            'thumbnail_public_id' => $thumbnailPublicId,
         ]);
 
         Book::create($bookData);
 
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Created');
     }
-    // public function generateUploadSignature()
-    // {
-    //     $cloudinary = new Cloudinary(config('cloudinary.cloud_url'));
-    //     $timestamp = time();
-    //     $folder = 'ebooks';
 
-    //     $signature = $cloudinary->apiUtils()->signParameters([
-    //         'timestamp' => $timestamp,
-    //         'folder' => $folder,
-    //     ]);
+    /**
+     * Generate thumbnail URL using the same format as working thumbnails
+     */
+    private function generatePdfThumbnail(UploadedFile $pdfFile, string $thumbnailBlobName): array
+    {
+        // Create temporary file paths with proper Windows separators
+        $tempDir = str_replace('/', DIRECTORY_SEPARATOR, storage_path('app/temp'));
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
 
-    //     return response()->json([
-    //         'signature' => $signature,
-    //         'timestamp' => $timestamp,
-    //         'folder' => $folder,
-    //         'api_key' => config('cloudinary.api_key'),
-    //         'cloud_name' => config('cloudinary.cloud_name'),
-    //     ]);
-    // }
+        $tempThumbnailPath = $tempDir . DIRECTORY_SEPARATOR . uniqid() . '_thumbnail';
+
+        try {
+            $inputPath = $pdfFile->getRealPath();
+
+            // Normalize paths for Windows
+            $inputPath = str_replace('/', DIRECTORY_SEPARATOR, $inputPath);
+            $tempThumbnailPath = str_replace('/', DIRECTORY_SEPARATOR, $tempThumbnailPath);
+
+            // Build command array for Process
+            $command = [
+                'pdftoppm',
+                '-jpeg',
+                '-f',
+                '1',
+                '-l',
+                '1',
+                '-scale-to',
+                '600',
+                $inputPath,
+                $tempThumbnailPath
+            ];
+
+            Log::info('Executing pdftoppm with normalized paths', [
+                'command' => implode(' ', $command),
+                'input_path' => $inputPath,
+                'output_base' => $tempThumbnailPath
+            ]);
+
+            // Create and run process
+            $process = new Process($command);
+            $process->setTimeout(60);
+            $process->run();
+
+            // Log the process output for debugging
+            Log::info('pdftoppm process completed', [
+                'exit_code' => $process->getExitCode(),
+                'output' => $process->getOutput(),
+                'error_output' => $process->getErrorOutput()
+            ]);
+
+            if (!$process->isSuccessful()) {
+                throw new \Exception('pdftoppm failed: ' . $process->getErrorOutput());
+            }
+
+            // Check ALL possible output file patterns (including 3-digit format!)
+            $possibleOutputs = [
+                $tempThumbnailPath . '-001.jpg',        // 3-digit format (what we found!)
+                $tempThumbnailPath . '-01.jpg',         // 2-digit format
+                $tempThumbnailPath . '-1.jpg',          // 1-digit format
+                $tempThumbnailPath . '1.jpg',           // No dash
+                $tempThumbnailPath . '.jpg',            // Just extension
+            ];
+
+            $actualThumbnailPath = null;
+            foreach ($possibleOutputs as $possiblePath) {
+                Log::info('Checking for thumbnail at', ['path' => $possiblePath]);
+                if (file_exists($possiblePath)) {
+                    $actualThumbnailPath = $possiblePath;
+                    Log::info('Found thumbnail at', ['path' => $actualThumbnailPath]);
+                    break;
+                }
+            }
+
+            if (!$actualThumbnailPath) {
+                // List all files in temp directory for debugging
+                $tempFiles = glob($tempDir . DIRECTORY_SEPARATOR . '*');
+                throw new \Exception('Thumbnail file was not created. Checked paths: ' . implode(', ', $possibleOutputs) . '. Files in temp dir: ' . implode(', ', $tempFiles));
+            }
+
+            // Read and upload thumbnail
+            $thumbnailContent = file_get_contents($actualThumbnailPath);
+
+            $uploadResult = $this->azureBlobService->uploadRawContent(
+                $thumbnailContent,
+                $thumbnailBlobName,
+                'image/jpeg'
+            );
+
+            // Clean up
+            if (file_exists($actualThumbnailPath)) {
+                unlink($actualThumbnailPath);
+            }
+
+            Log::info('Thumbnail generated and uploaded successfully', [
+                'thumbnail_path' => $actualThumbnailPath,
+                'azure_upload_success' => $uploadResult['success']
+            ]);
+
+            return $uploadResult;
+
+        } catch (\Exception $e) {
+            // Clean up on error - check all possible file patterns
+            $cleanupPatterns = [
+                $tempThumbnailPath . '*.jpg',
+                dirname($tempThumbnailPath) . DIRECTORY_SEPARATOR . basename($tempThumbnailPath) . '*.jpg'
+            ];
+
+            foreach ($cleanupPatterns as $pattern) {
+                $files = glob($pattern);
+                foreach ($files as $file) {
+                    if (file_exists($file)) {
+                        unlink($file);
+                    }
+                }
+            }
+
+            Log::error('Thumbnail generation failed', [
+                'error' => $e->getMessage(),
+                'input_path' => $inputPath ?? 'unknown',
+                'output_base' => $tempThumbnailPath ?? 'unknown'
+            ]);
+
+            throw $e;
+        }
+    }
 
     /**
      * Display the specified resource.
@@ -145,7 +275,7 @@ class BookController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Book $book, AzureBlobService $azureBlobService)
+    public function update(Request $request, Book $book)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -163,47 +293,53 @@ class BookController extends Controller
         $bookData = $validated;
 
         if ($request->hasFile('ebook')) {
-            // Delete old PDF from Azure
+            // Delete old files from Azure
             if ($book->ebook_public_id) {
-                $azureBlobService->deleteFile($book->ebook_public_id);
+                $this->azureBlobService->deleteFile($book->ebook_public_id);
+            }
+            if ($book->thumbnail_public_id) {
+                $this->azureBlobService->deleteFile($book->thumbnail_public_id);
             }
 
-            // Upload new PDF to Azure
             $file = $request->file('ebook');
-
-
-            $parser = new Parser();
-            $pageCount = null;
-
-            if ($file->getMimeType() === 'application/pdf') {
-                $pdf = $parser->parseFile($file->getRealPath());
-                $pageCount = count($pdf->getPages());
-            }
 
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();
             $sanitizedName = Str::slug($originalName);
-            $newBlobName = uniqid() . '_' . $sanitizedName . '.' . $extension;
+            $uniqueId = uniqid();
 
-            $uploadResult = $azureBlobService->uploadFile($file, $newBlobName);
+            $newPdfBlobName = 'ebooks/' . $uniqueId . '_' . $sanitizedName . '.' . $extension;
+            $newThumbnailBlobName = 'thumbnails/' . $uniqueId . '_' . $sanitizedName . '.jpg';
+
+            $uploadResult = $this->azureBlobService->uploadFile($file, $newPdfBlobName);
 
             if (!$uploadResult['success']) {
                 return back()->withErrors(['ebook' => 'Failed to upload file to Azure storage: ' . $uploadResult['error']]);
             }
 
-            $newUrl = $uploadResult['url'];
+            $newPdfUrl = $this->azureBlobService->getPublicUrl($newPdfBlobName);
+            $thumbnailUrl = null;
+            $thumbnailPublicId = null;
 
-            // Generate new Cloudinary fetch thumbnail
-            $cloudName = env('CLOUDINARY_CLOUD_NAME');
-            $encodedSource = urlencode($newUrl);
-            $finalCoverUrl = "https://res.cloudinary.com/{$cloudName}/image/fetch/"
-                . "c_fill,w_400,h_600,q_auto,f_jpg,pg_1/{$encodedSource}";
+            // Generate new thumbnail
+            if ($file->getMimeType() === 'application/pdf') {
+                try {
+                    $thumbnailResult = $this->generatePdfThumbnail($file, $newThumbnailBlobName);
+
+                    if ($thumbnailResult['success']) {
+                        $thumbnailUrl = $thumbnailResult['url'];
+                        $thumbnailPublicId = $newThumbnailBlobName;
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to generate PDF thumbnail during update: ' . $e->getMessage());
+                }
+            }
 
             $bookData = array_merge($bookData, [
-                'cover_image_url' => $finalCoverUrl,
-                'ebook_url' => $newUrl,
-                'ebook_public_id' => $newBlobName,
-                'pages' =>$pageCount,
+                'ebook_url' => $newPdfUrl,
+                'ebook_public_id' => $newPdfBlobName,
+                'cover_image_url' => $thumbnailUrl,
+                'thumbnail_public_id' => $thumbnailPublicId,
             ]);
         }
 
@@ -215,18 +351,20 @@ class BookController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(book $book, AzureBlobService $azureBlobService)
+    public function destroy(Book $book)
     {
+        // Delete both PDF and thumbnail from Azure
         if ($book->ebook_public_id) {
-            $azureBlobService->deleteFile($book->ebook_public_id);
+            $this->azureBlobService->deleteFile($book->ebook_public_id);
+        }
+        if ($book->thumbnail_public_id) {
+            $this->azureBlobService->deleteFile($book->thumbnail_public_id);
         }
 
         $book->delete();
 
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Deleted');
     }
-
-
 
     public function download(Book $book)
     {

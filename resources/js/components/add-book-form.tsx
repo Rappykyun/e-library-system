@@ -1,14 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';  
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { Textarea } from '@/components/ui/textarea';
 import { type Category } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { FormEventHandler, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
 
 export function AddBookForm({ categories }: { categories: Category[] }) {
     const [open, setOpen] = useState(false);
