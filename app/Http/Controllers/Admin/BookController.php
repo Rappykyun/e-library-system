@@ -59,6 +59,7 @@ class BookController extends Controller
             'description' => 'nullable|string',
             'publisher' => 'nullable|string|max:255',
             'published_year' => 'nullable|digits:4',
+            'pages' => 'nullable|integer|min:1|max:10000',
             'isbn' => 'nullable|string|max:20|unique:books',
             'language' => 'nullable|string|max:10',
             'ebook' => 'required|file|mimes:pdf,epub|max:30720',
@@ -79,7 +80,8 @@ class BookController extends Controller
         $uploadResult = $this->azureBlobService->uploadFile($file, $pdfBlobName);
 
         if (!$uploadResult['success']) {
-            return back()->withErrors(['ebook' => 'Failed to upload file to Azure storage: ' . $uploadResult['error']]);
+            $errorMessage = 'Failed to upload file to Azure storage: ' . $uploadResult['error'];
+            return back()->withErrors(['ebook' => $errorMessage]);
         }
 
         $pdfUrl = $this->azureBlobService->getPublicUrl($pdfBlobName);
@@ -109,7 +111,7 @@ class BookController extends Controller
             'thumbnail_public_id' => $thumbnailPublicId,
         ]);
 
-        Book::create($bookData);
+        $book = Book::create($bookData);
 
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Created');
     }
@@ -277,6 +279,8 @@ class BookController extends Controller
      */
     public function update(Request $request, Book $book)
     {
+
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
@@ -284,8 +288,8 @@ class BookController extends Controller
             'description' => 'nullable|string',
             'publisher' => 'nullable|string|max:255',
             'published_year' => 'nullable|digits:4',
+            'pages' => 'nullable|integer|min:1|max:10000',
             'isbn' => 'nullable|string|max:20|unique:books,isbn,' . $book->id,
-            'pages' => 'nullable|integer',
             'language' => 'nullable|string|max:10',
             'ebook' => 'nullable|file|mimes:pdf,epub|max:30720',
         ]);
@@ -314,7 +318,8 @@ class BookController extends Controller
             $uploadResult = $this->azureBlobService->uploadFile($file, $newPdfBlobName);
 
             if (!$uploadResult['success']) {
-                return back()->withErrors(['ebook' => 'Failed to upload file to Azure storage: ' . $uploadResult['error']]);
+                $errorMessage = 'Failed to upload file to Azure storage: ' . $uploadResult['error'];
+                return back()->withErrors(['ebook' => $errorMessage]);
             }
 
             $newPdfUrl = $this->azureBlobService->getPublicUrl($newPdfBlobName);

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { BookOpen, Eye } from 'lucide-react';
 
 interface BooksIndexProps {
@@ -15,6 +15,16 @@ interface BooksIndexProps {
 }
 
 export default function BooksIndex({ books, categories }: BooksIndexProps) {
+    const handleBookAdded = () => {
+        // Refresh the current page to show the new book
+        router.reload({ only: ['books'] });
+    };
+
+    const handleBookUpdated = () => {
+        // Refresh the current page to show the updated book
+        router.reload({ only: ['books'] });
+    };
+
     return (
         <AppLayout>
             <Head title="Manage Books" />
@@ -22,7 +32,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-2xl font-semibold">Manage Books</h1>
-                        <AddBookForm categories={categories} />
+                        <AddBookForm categories={categories} onBookAdded={handleBookAdded} />
                     </div>
 
                     <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
@@ -74,7 +84,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                                                         View
                                                     </Button>
                                                 </Link>
-                                                <EditBookForm book={book} categories={categories} />
+                                                <EditBookForm book={book} categories={categories} onBookUpdated={handleBookUpdated} />
                                                 <DeleteBookDialog book={book} />
                                             </div>
                                         </TableCell>

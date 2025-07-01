@@ -29,6 +29,12 @@ export function EditUserRoleForm({ user, roles, userCount }: { user: User; roles
             {
                 preserveScroll: true,
                 onFinish: () => setProcessing(false),
+                onSuccess: () => {
+                    toast.success('User role updated successfully');
+                },
+                onError: () => {
+                    toast.error('Failed to update user role');
+                },
             },
         );
     };
@@ -36,9 +42,9 @@ export function EditUserRoleForm({ user, roles, userCount }: { user: User; roles
     const currentRole = user.roles.find((r: any) => r.name === 'super_admin')?.name ?? user.roles[0]?.name;
 
     return (
-        <form>
+        <div className="w-full max-w-[200px]">
             <Select onValueChange={handleRoleChange} defaultValue={currentRole} disabled={processing || isEditingSelf}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className={`w-full ${processing ? 'opacity-50' : ''}`}>
                     <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -49,12 +55,14 @@ export function EditUserRoleForm({ user, roles, userCount }: { user: User; roles
                             return true;
                         })
                         .map((role) => (
-                            <SelectItem key={role.id} value={role.name} disabled={isLastAdmin && role.name !== 'admin'}>
-                                {role.name}
+                            <SelectItem key={role.id} value={role.name} disabled={isLastAdmin && role.name !== 'admin'} className="capitalize">
+                                {role.name.replace('_', ' ')}
                             </SelectItem>
                         ))}
                 </SelectContent>
             </Select>
-        </form>
+            {isEditingSelf && <p className="mt-1 text-xs text-muted-foreground">You cannot change your own role</p>}
+            {isLastAdmin && <p className="mt-1 text-xs text-amber-600">Last admin - role cannot be changed</p>}
+        </div>
     );
 }
