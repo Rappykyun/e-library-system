@@ -1,14 +1,14 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { type Category } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, FileText, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, FileText, Loader2, Upload, X } from 'lucide-react';
 import { DragEvent, FormEventHandler, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -181,27 +181,6 @@ export function AddBookForm({ categories, onBookAdded }: AddBookFormProps) {
                     <DialogTitle>Add New Book</DialogTitle>
                     <DialogDescription>Fill in the details below to add a new book to the library</DialogDescription>
                 </DialogHeader>
-
-                {/* Upload Progress Bar - Only show during upload */}
-                {isUploading && (
-                    <div className="space-y-4 rounded-lg border p-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">
-                                {uploadStatus === 'uploading' && 'Uploading...'}
-                                {uploadStatus === 'processing' && 'Processing...'}
-                                {uploadStatus === 'success' && 'Upload Complete!'}
-                            </span>
-                            <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
-                        </div>
-                        <Progress value={uploadProgress} className="h-2" />
-                        {uploadStatus === 'success' && (
-                            <div className="flex items-center gap-2 text-sm text-green-600">
-                                <CheckCircle className="h-4 w-4" />
-                                Book uploaded successfully!
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 <div className="max-h-[60vh] overflow-y-auto">
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -506,6 +485,25 @@ export function AddBookForm({ categories, onBookAdded }: AddBookFormProps) {
                 </div>
 
                 <DialogFooter className="border-t pt-4">
+                    {isUploading && (
+                        <div className="space-y-4 rounded-lg border p-4 w-full">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">
+                                    {uploadStatus === 'uploading' && 'Uploading...'}
+                                    {uploadStatus === 'processing' && 'Processing...'}
+                                    {uploadStatus === 'success' && 'Upload Complete!'}
+                                </span>
+                                <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+                            </div>
+                            <Progress value={uploadProgress} className="h-2" />
+                            {uploadStatus === 'success' && (
+                                <div className="flex items-center gap-2 text-sm text-green-600">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Book uploaded successfully!
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isUploading}>
                         Cancel
                     </Button>
@@ -516,7 +514,7 @@ export function AddBookForm({ categories, onBookAdded }: AddBookFormProps) {
                     >
                         {isUploading ? (
                             <>
-                                <Upload className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 {uploadStatus === 'uploading' && 'Uploading...'}
                                 {uploadStatus === 'processing' && 'Processing...'}
                             </>

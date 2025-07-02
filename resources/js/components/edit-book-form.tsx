@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { type Book, type Category } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Edit, FileText, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit, FileText, Loader2, Upload, X } from 'lucide-react';
 import { DragEvent, FormEventHandler, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -177,27 +177,6 @@ export function EditBookForm({ book, categories = [], onBookUpdated }: EditBookF
                     <DialogTitle>Edit Book</DialogTitle>
                     <DialogDescription>Update the book details below</DialogDescription>
                 </DialogHeader>
-
-                {/* Upload Progress Bar - Only show during upload */}
-                {isUploading && (
-                    <div className="space-y-4 rounded-lg border p-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">
-                                {uploadStatus === 'uploading' && 'Updating...'}
-                                {uploadStatus === 'processing' && 'Processing...'}
-                                {uploadStatus === 'success' && 'Update Complete!'}
-                            </span>
-                            <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
-                        </div>
-                        <Progress value={uploadProgress} className="h-2" />
-                        {uploadStatus === 'success' && (
-                            <div className="flex items-center gap-2 text-sm text-green-600">
-                                <CheckCircle className="h-4 w-4" />
-                                Book updated successfully!
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 <div className="max-h-[60vh] overflow-y-auto">
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -501,14 +480,33 @@ export function EditBookForm({ book, categories = [], onBookUpdated }: EditBookF
                     </form>
                 </div>
 
-                <DialogFooter className="border-t pt-4">
+                <DialogFooter className=" border-t pt-4">
+                    {isUploading && (
+                        <div className="space-y-4 rounded-lg border p-4 w-full">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">
+                                    {uploadStatus === 'uploading' && 'Updating...'}
+                                    {uploadStatus === 'processing' && 'Processing...'}
+                                    {uploadStatus === 'success' && 'Update Complete!'}
+                                </span>
+                                <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+                            </div>
+                            <Progress value={uploadProgress} className="h-2" />
+                            {uploadStatus === 'success' && (
+                                <div className="flex items-center gap-2 text-sm text-green-600">
+                                    <CheckCircle className="h-4 w-4" />
+                                    Book updated successfully!
+                                </div>
+                            )}
+                        </div>
+                    )}
                     <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isUploading}>
                         Cancel
                     </Button>
                     <Button type="submit" disabled={isUploading || !data.title || !data.author || !data.category_id} onClick={handleSubmit}>
                         {isUploading ? (
                             <>
-                                <Upload className="mr-2 h-4 w-4 animate-spin" />
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 {uploadStatus === 'uploading' && 'Updating...'}
                                 {uploadStatus === 'processing' && 'Processing...'}
                             </>
