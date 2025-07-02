@@ -48,7 +48,7 @@ export default function BooksIndex({ books, categories, filters }: BooksIndexPro
                         )}
                         {/* <div className="p-6 text-gray-900">Here you can browse books.</div> */}
                         {books.data.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                            <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {books.data.map((book) => (
                                     <BookCard key={book.id} book={book} categories={categories} />
                                 ))}
@@ -59,8 +59,7 @@ export default function BooksIndex({ books, categories, filters }: BooksIndexPro
                                 <h3 className="mt-4 text-xl font-semibold text-gray-800">No Books Found</h3>
                                 <p className="mt-2 text-sm text-gray-500">
                                     We couldn't find any books matching your search. Try adjusting your filters.
-                                    </p>
-                                    
+                                </p>
                             </div>
                         )}
                         {books.last_page > 1 && (
