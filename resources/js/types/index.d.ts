@@ -75,7 +75,29 @@ export interface Book {
     views_count: number;
     created_at: string;
     updated_at: string;
+    // User relationship data (when withUserData is used)
+    bookmarks?: Bookmark[];
+    ratings?: Rating[];
 }
+
+export interface Bookmark {
+    id: number;
+    user_id: number;
+    book_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Rating {
+    id: number;
+    user_id: number;
+    book_id: number;
+    rating: number;
+    review?: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
 interface BookFormData {
     title: string;
     author: string;
@@ -113,6 +135,12 @@ export interface Role {
     name: string;
 }
 
+export interface PaginatedLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 export interface PaginatedResponse<T> {
     data: T[];
     links: PaginatedLink[];
@@ -128,4 +156,3 @@ export interface PaginatedResponse<T> {
     prev_page_url: string | null;
     path: string;
 }
-

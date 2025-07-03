@@ -9,12 +9,8 @@ use Spatie\Permission\Models\Permission;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
@@ -24,45 +20,74 @@ class RolesAndPermissionsSeeder extends Seeder
             'create categories',
             'update categories',
             'delete categories',
-            'create tags',
-            'update tags',
-            'delete tags',
             'view users',
+            'manage users',
             'track downloads',
             'view dashboard',
             'browse books',
             'download books',
             'view books',
             'bookmark books',
+            'system settings',
         ];
 
         foreach ($permissions as $permission) {
-
             Permission::findOrCreate($permission, 'web');
         }
 
-        // ------------------------------------------------------------------
-        // Roles
-        // ------------------------------------------------------------------
+        // 🎓 STUDENT ROLE - Browse and use library only
         $studentRole = Role::findOrCreate('student', 'web');
-        $studentRole->syncPermissions(['browse books', 'download books', 'view books', 'bookmark books']);
+        $studentRole->syncPermissions([
+            'browse books',
+            'download books',
+            'view books',
+            'bookmark books'
+        ]);
 
+        // 📚 LIBRARIAN ROLE - Manage books and categories + dashboard
+        $librarianRole = Role::findOrCreate('librarian', 'web');
+        $librarianRole->syncPermissions([
+            'view dashboard',
+            'upload books',
+            'edit books',
+            'delete books',
+            'create categories',
+            'update categories',
+            'delete categories',
+            'track downloads',
+            // Plus all student permissions
+            'browse books',
+            'download books',
+            'view books',
+            'bookmark books'
+        ]);
+
+        // 👑 ADMIN ROLE - Everything (highest level)
         $adminRole = Role::findOrCreate('admin', 'web');
-        $permissions = Permission::where('name', '!=', 'view users')->get();
-        $adminRole->syncPermissions($permissions);
+        $adminRole->syncPermissions(Permission::all()); // Full access to everything
 
-        $superAdminRole = Role::findOrCreate('super_admin', 'web');
-        $superAdminRole->syncPermissions(Permission::all());
-
-        $firstUser = \App\Models\User::first();
-        if ($firstUser) {
-            $firstUser->syncRoles(['super_admin']);
+        // 🔥 Remove super_admin role if it exists
+        $superAdminRole = Role::where('name', 'super_admin')->first();
+        if ($superAdminRole) {
+            // Move any super_admin users to admin
+            $superAdminUsers = \App\Models\User::role('super_admin')->get();
+            foreach ($superAdminUsers as $user) {
+                $user->syncRoles(['admin']);
+            }
+            $superAdminRole->delete();
         }
 
-        $owner = \App\Models\User::firstOrCreate(
-            ['email' => 'owner@example.com'],
-            ['name' => 'System Owner', 'password' => bcrypt('password')]
+        // Create default admin user
+        $admin = \App\Models\User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            ['name' => 'System Administrator', 'password' => bcrypt('password')]
         );
-        $owner->syncRoles(['super_admin']);
+        $admin->syncRoles(['admin']);
+
+        // Convert first user to admin if they exist
+        $firstUser = \App\Models\User::first();
+        if ($firstUser && $firstUser->id !== $admin->id) {
+            $firstUser->syncRoles(['admin']);
+        }
     }
 }

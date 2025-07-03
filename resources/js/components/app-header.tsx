@@ -14,7 +14,8 @@ import { Link, usePage } from '@inertiajs/react';
 import { BookMarked, Bookmark, LayoutGrid, Library, Menu, Settings, Users } from 'lucide-react';
 import AppLogoIcon from './app-logo-icon';
 
-const mainNavItems: NavItem[] = [
+// 👑 Admin Navigation - Full System Control
+const adminNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: '/dashboard',
@@ -33,12 +34,6 @@ const mainNavItems: NavItem[] = [
         icon: Bookmark,
         permission: 'create categories',
     },
-    // {
-    //     title: 'Tags',
-    //     href: '/admin/tags',
-    //     icon: Tag,
-    //     permission: 'create tags',
-    // },
     {
         title: 'Users',
         href: '/admin/users',
@@ -47,8 +42,29 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const adminNavItems: NavItem[] = [];
+// 📚 Librarian Navigation - Book Management Only
+const librarianNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '/dashboard',
+        icon: LayoutGrid,
+        permission: 'view dashboard',
+    },
+    {
+        title: 'Books',
+        href: '/admin/books',
+        icon: Library,
+        permission: 'edit books',
+    },
+    {
+        title: 'Categories',
+        href: '/admin/categories',
+        icon: Bookmark,
+        permission: 'create categories',
+    },
+];
 
+// 🎓 Student Navigation - Browse Only
 const studentNavItems: NavItem[] = [
     {
         title: 'Browse Books',
@@ -84,10 +100,19 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const { hasPermission, hasRole } = usePermission();
     const getInitials = useInitials();
 
-    const filteredMainNavItems = mainNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
-    const filteredAdminNavItems = adminNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
-    const filteredStudentNavItems = studentNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
-    const navItems = hasRole('admin') ? filteredAdminNavItems : hasRole('student') ? filteredStudentNavItems : [];
+    // ✅ Get navigation items based on user role
+    const getNavItemsForRole = () => {
+        if (hasRole('admin')) {
+            return adminNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
+        } else if (hasRole('librarian')) {
+            return librarianNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
+        } else if (hasRole('student')) {
+            return studentNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
+        }
+        return [];
+    };
+
+    const navItems = getNavItemsForRole();
 
     return (
         <>
@@ -100,8 +125,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </Link>
                         </div>
                         <div className="flex flex-col">
-                            <h1 className="text-lg font-semibold text-white tracking-wide">COMMISSION ON HIGHER EDUCATION - REGIONAL OFFICE XII</h1>{' '}
-                            <h1 className="text-md text-white tracking-wide">E-Library</h1>
+                            <h1 className="text-lg font-semibold tracking-wide text-white">COMMISSION ON HIGHER EDUCATION - REGIONAL OFFICE XII</h1>{' '}
+                            <h1 className="text-md tracking-wide text-white">E-Library</h1>
                         </div>
                     </div>
                 </div>
@@ -122,12 +147,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
                                         <div className="flex flex-col space-y-4">
-                                            {filteredMainNavItems.map((item) => (
-                                                <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
-                                                    {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
-                                                    <span>{item.title}</span>
-                                                </Link>
-                                            ))}
+                                            {/* ✅ Mobile: Only show role-based navigation */}
                                             {navItems.map((item) => (
                                                 <Link key={item.title} href={item.href} className="flex items-center space-x-2 font-medium">
                                                     {item.icon && <Icon iconNode={item.icon} className="h-5 w-5" />}
@@ -156,24 +176,24 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         </Sheet>
                     </div>
 
-                    {/* Desktop Navigation */}
+                    {/* ✅ Desktop Navigation - FIXED: Only show role-based navigation */}
                     <div className="ml-6 hidden h-full items-center space-x-6 lg:flex">
                         <NavigationMenu className="flex h-full items-stretch">
                             <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {filteredMainNavItems.map((item, index) => (
+                                {navItems.map((item, index) => (
                                     <NavigationMenuItem key={index} className="relative flex h-full items-center">
                                         <Link
                                             href={item.href}
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
-                                                page.url === item.href && activeItemStyles,
+                                                (page.url === item.href || page.url.startsWith(item.href)) && activeItemStyles,
                                                 'h-9 cursor-pointer px-3',
                                             )}
                                         >
                                             {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
                                             {item.title}
                                         </Link>
-                                        {page.url === item.href && (
+                                        {(page.url === item.href || page.url.startsWith(item.href)) && (
                                             <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
                                         )}
                                     </NavigationMenuItem>
@@ -182,30 +202,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         </NavigationMenu>
                     </div>
 
+                    {/* ✅ Right side - Only user avatar */}
                     <div className="ml-auto flex items-center space-x-2">
-                        <NavigationMenu className="hidden h-full items-stretch lg:flex">
-                            <NavigationMenuList className="flex h-full items-stretch space-x-2">
-                                {navItems.map((item, index) => (
-                                    <NavigationMenuItem key={index} className="relative flex h-full items-center">
-                                        <Link
-                                            href={item.href}
-                                            className={cn(
-                                                navigationMenuTriggerStyle(),
-                                                page.url.startsWith(item.href) && activeItemStyles,
-                                                'h-9 cursor-pointer px-3',
-                                            )}
-                                        >
-                                            {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
-                                            {item.title}
-                                        </Link>
-                                        {page.url.startsWith(item.href) && (
-                                            <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
-                                        )}
-                                    </NavigationMenuItem>
-                                ))}
-                            </NavigationMenuList>
-                        </NavigationMenu>
-
                         {auth.user && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

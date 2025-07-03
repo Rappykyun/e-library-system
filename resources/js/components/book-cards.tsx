@@ -1,45 +1,28 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { type Book, type Category } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Download, Heart } from 'lucide-react';
+import { BookOpen, Download } from 'lucide-react';
+import { BookmarkButton } from './bookmark-button';
 import { DeleteBookDialog } from './delete-book-dialog';
 import { EditBookForm } from './edit-book-form';
 
 export function BookCard({ book, categories, showAdminActions }: { book: Book; categories: Category[]; showAdminActions?: boolean }) {
+    // Check if book is bookmarked by checking if user bookmark data exists
+    const isBookmarked = !!(book.bookmarks && book.bookmarks.length > 0);
+
     const CoverImage = () => (
         <div className="relative aspect-[3/4] w-full max-w-[120px] overflow-hidden rounded-md bg-muted shadow-sm">
             {book.cover_image_url ? (
                 <>
                     <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" />
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                className="absolute top-1 right-1 h-6 w-6 rounded-full bg-white/90 p-0 shadow-sm hover:scale-110 hover:bg-white"
-                            >
-                                <Heart className="h-3.5 w-3.5 text-pink-500" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Bookmark this book</p>
-                        </TooltipContent>
-                    </Tooltip>
+                    {!showAdminActions && <BookmarkButton bookId={book.id} isBookmarked={isBookmarked} variant="card" />}
                 </>
             ) : (
                 <div className="flex h-full w-full flex-col items-center justify-center bg-secondary p-2 text-center text-secondary-foreground">
                     <BookOpen className="mb-1 h-6 w-6" />
                     <p className="line-clamp-2 text-xs font-medium">{book.title}</p>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-white/90 p-0 shadow-sm hover:scale-110 hover:bg-white"
-                    >
-                        <Heart className="h-3.5 w-3.5 text-pink-500" />
-                    </Button>
+                    {!showAdminActions && <BookmarkButton bookId={book.id} isBookmarked={isBookmarked} variant="card" />}
                 </div>
             )}
         </div>
@@ -64,7 +47,7 @@ export function BookCard({ book, categories, showAdminActions }: { book: Book; c
                             )}
                             <div className="flex cursor-pointer items-center text-xs text-muted-foreground">
                                 <Download className="mr-1 h-3 w-3" />
-                                <span>{book.download_count}</span>
+                                <span>{book.download_count || 0}</span>
                             </div>
                         </div>
 

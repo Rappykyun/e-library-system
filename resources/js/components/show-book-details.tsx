@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Book, type Category } from '@/types';
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, Building2, Calendar, Download, Eye, FileText, Globe, Hash, Heart, Share2, Star, Tag, User } from 'lucide-react';
+import { ArrowLeft, BookOpen, Building2, Calendar, Download, Eye, FileText, Globe, Hash, Share2, Star, Tag, User } from 'lucide-react';
 import { useState } from 'react';
+import { BookmarkButton } from './bookmark-button';
 import { DeleteBookDialog } from './delete-book-dialog';
 
 interface ShowBooksDetailsProps {
@@ -16,7 +17,7 @@ interface ShowBooksDetailsProps {
 
 export function ShowBookDetails({ book, categories, showAdminActions }: ShowBooksDetailsProps) {
     const [imageError, setImageError] = useState(false);
-    const [isBookmarked, setIsBookmarked] = useState(false);
+    const isBookmarked = !!(book.bookmarks && book.bookmarks.length > 0);
 
     const handleImageError = () => {
         setImageError(true);
@@ -31,11 +32,6 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
         if (book.ebook_url) {
             window.open(book.ebook_url, '_blank');
         }
-    };
-
-    const handleBookmark = () => {
-        setIsBookmarked(!isBookmarked);
-        // TODO: Implement bookmark functionality
     };
 
     const handleShare = () => {
@@ -65,14 +61,7 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
 
                         <div className="flex gap-2">
                             {/* Quick Actions */}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleBookmark}
-                                className="border border-white/20 backdrop-blur-sm hover:bg-white/60"
-                            >
-                                <Heart className={`h-4 w-4 ${isBookmarked ? 'fill-pink-500 text-pink-500' : ''}`} />
-                            </Button>
+                            {!showAdminActions && <BookmarkButton bookId={book.id} isBookmarked={isBookmarked} variant="ghost" />}
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -205,13 +194,13 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
                                 {/* Description */}
                                 {book.description && (
                                     <Card className="border-0 bg-white/80 shadow-xl backdrop-blur-sm">
-                                        <CardHeader className="pb-4">
+                                        <CardHeader className="pt-2">
                                             <CardTitle className="flex items-center gap-2 text-xl">
                                                 <FileText className="h-5 w-5 text-blue-600" />
                                                 Description
                                             </CardTitle>
                                         </CardHeader>
-                                        <CardContent>
+                                        <CardContent className="">
                                             <p className="text-base leading-relaxed text-gray-700">{book.description}</p>
                                         </CardContent>
                                     </Card>
@@ -221,7 +210,7 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
                                 <div className="grid gap-6 sm:grid-cols-2">
                                     {/* Publication Details */}
                                     <Card className="border-0 bg-white/80 shadow-xl backdrop-blur-sm">
-                                        <CardHeader className="pb-4">
+                                        <CardHeader className="pt-4">
                                             <CardTitle className="flex items-center gap-2 text-lg">
                                                 <BookOpen className="h-5 w-5 text-green-600" />
                                                 Publication Details
@@ -270,7 +259,6 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
                                         </CardContent>
                                     </Card>
 
-                                    {/* Additional Information */}
                                     <Card className="border-0 bg-white/80 shadow-xl backdrop-blur-sm">
                                         <CardHeader className="pb-4">
                                             <CardTitle className="flex items-center gap-2 text-lg">
