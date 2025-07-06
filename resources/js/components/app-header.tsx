@@ -11,7 +11,7 @@ import { usePermission } from '@/hooks/use-permission';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookMarked, Bookmark, LayoutGrid, Library, Menu, Settings, Users } from 'lucide-react';
+import { BookCopy, BookMarked, BookUser, Bookmark, GraduationCap, LayoutGrid, Library, Menu, Settings, Users } from 'lucide-react';
 import AppLogoIcon from './app-logo-icon';
 
 // 👑 Admin Navigation - Full System Control
@@ -26,6 +26,18 @@ const adminNavItems: NavItem[] = [
         title: 'Books',
         href: '/admin/books',
         icon: Library,
+        permission: 'edit books',
+    },
+    {
+        title: 'Programs',
+        href: '/admin/programs',
+        icon: GraduationCap,
+        permission: 'edit books',
+    },
+    {
+        title: 'Courses',
+        href: '/admin/courses',
+        icon: BookCopy,
         permission: 'edit books',
     },
     {
@@ -61,6 +73,16 @@ const librarianNavItems: NavItem[] = [
         href: '/admin/categories',
         icon: Bookmark,
         permission: 'create categories',
+    },
+];
+
+// 👨‍🏫 Faculty Navigation - Course Shelf Management
+const facultyNavItems: NavItem[] = [
+    {
+        title: 'My Courses',
+        href: '/faculty/courses',
+        icon: BookUser,
+        permission: 'manage course shelves',
     },
 ];
 
@@ -106,6 +128,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
             return adminNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
         } else if (hasRole('librarian')) {
             return librarianNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
+        } else if (hasRole('faculty')) {
+            return facultyNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
         } else if (hasRole('student')) {
             return studentNavItems.filter((item) => (item.permission ? hasPermission(item.permission) : true));
         }

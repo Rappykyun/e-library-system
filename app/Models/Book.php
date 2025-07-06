@@ -22,6 +22,7 @@ class Book extends Model
         'pages',
         'language',
         'category_id',
+        'course_id',
         'cover_image_url',
         'cover_image_public_id',
         'ebook_url',
@@ -31,7 +32,6 @@ class Book extends Model
         'average_rating',
         'total_ratings',
         'downloads_count',
-
     ];
 
     protected $casts = [
@@ -42,15 +42,25 @@ class Book extends Model
         'pages' => 'integer',
         'published_year' => 'integer',
     ];
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
+    }
+
+    public function coursesOnShelf(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_book');
+    }
+
     public function bookMarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
-
     }
 
     public function ratings(): HasMany

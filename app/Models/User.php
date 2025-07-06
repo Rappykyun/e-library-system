@@ -17,6 +17,13 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     /**
+     * The relationships that should always be loaded.
+     *
+     * @var array
+     */
+    protected $with = ['roles'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -67,5 +74,10 @@ class User extends Authenticatable
     public function ratedBooks(): BelongsToMany
     {
         return $this->belongsToMany(Book::class, 'ratings')->withPivot('rating', 'review');
+    }
+
+    public function teachingCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_user');
     }
 }

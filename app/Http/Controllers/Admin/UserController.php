@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -17,6 +20,37 @@ class UserController extends Controller
             'users' => User::with('roles')->latest()->paginate(10),
             'roles' => Role::all(),
         ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:' . User::class,
+            'role' => [
+                'required',
+                'string',
+                Rule::exists('roles', 'name')->where(function ($query) {
+                    // Allow assigning any role EXCEPT 'admin'
+                    return $query->where('name', '!=', 'admin');
+                })
+            ],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Assign role using spatie/laravel-permission
+        $user->assignRole($request->role);
+
+        // Optional: Send a welcome/notification email to the user
+        // Mail::to($user)->send(new WelcomeEmail($request->password));
+
+        return Redirect::route('admin.users.index')->with('success', 'User created successfully.');
     }
 
     public function update(Request $request, User $user)

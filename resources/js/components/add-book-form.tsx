@@ -1,12 +1,12 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { type Category } from '@/types';
+import { type Category, type Course } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, FileText, Loader2, Upload, X } from 'lucide-react';
 import { DragEvent, FormEventHandler, useRef, useState } from 'react';
@@ -14,10 +14,11 @@ import { toast } from 'sonner';
 
 interface AddBookFormProps {
     categories: Category[];
+    courses: Course[];
     onBookAdded?: () => void;
 }
 
-export function AddBookForm({ categories, onBookAdded }: AddBookFormProps) {
+export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormProps) {
     const [open, setOpen] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -33,6 +34,7 @@ export function AddBookForm({ categories, onBookAdded }: AddBookFormProps) {
         pages: '',
         language: 'en',
         category_id: '',
+        course_id: '',
         description: '',
         ebook: null as File | null,
     });
@@ -267,6 +269,37 @@ export function AddBookForm({ categories, onBookAdded }: AddBookFormProps) {
                                     )}
                                 </div>
 
+                                {/* Course */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="course">Course (Optional)</Label>
+                                    <Select
+                                        onValueChange={(value) => {
+                                            // Handle the "None" case
+                                            setData('course_id', value === 'none' ? '' : value);
+                                            clearUploadError();
+                                        }}
+                                        value={data.course_id || 'none'}
+                                    >
+                                        <SelectTrigger className={errors.course_id ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder="Assign to a course" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            {courses.map((course) => (
+                                                <SelectItem key={course.id} value={course.id.toString()}>
+                                                    {course.program.name} - {course.name} ({course.code})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.course_id && (
+                                        <p className="flex items-center gap-1 text-sm text-red-600">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {errors.course_id}
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Publisher */}
                                 <div className="space-y-2">
                                     <Label htmlFor="publisher">Publisher</Label>
@@ -486,7 +519,7 @@ export function AddBookForm({ categories, onBookAdded }: AddBookFormProps) {
 
                 <DialogFooter className="border-t pt-4">
                     {isUploading && (
-                        <div className="space-y-4 rounded-lg border p-4 w-full">
+                        <div className="w-full space-y-4 rounded-lg border p-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium">
                                     {uploadStatus === 'uploading' && 'Uploading...'}

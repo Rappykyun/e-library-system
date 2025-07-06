@@ -16,6 +16,7 @@ use Smalot\PdfParser\Parser;
 use Ottosmops\Pdftothumb\Converter;
 use Illuminate\Http\UploadedFile;
 use Symfony\Component\Process\Process;
+use App\Models\Course;
 
 class BookController extends Controller
 {
@@ -31,12 +32,14 @@ class BookController extends Controller
      */
     public function index()
     {
-        $books = Book::with('category')->latest()->paginate(4);
+        $books = Book::with(['category', 'course.program'])->latest()->paginate(4);
         $categories = Category::orderBy('name')->get();
+        $courses = Course::with('program')->orderBy('name')->get();
 
         return Inertia::render('admin/books/index', [
             'books' => $books,
-            'categories' => $categories
+            'categories' => $categories,
+            'courses' => $courses,
         ]);
     }
 
@@ -56,6 +59,7 @@ class BookController extends Controller
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            'course_id' => 'nullable|exists:courses,id',
             'description' => 'nullable|string',
             'publisher' => 'nullable|string|max:255',
             'published_year' => 'nullable|digits:4',
@@ -285,6 +289,7 @@ class BookController extends Controller
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
+            'course_id' => 'nullable|exists:courses,id',
             'description' => 'nullable|string',
             'publisher' => 'nullable|string|max:255',
             'published_year' => 'nullable|digits:4',

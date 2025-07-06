@@ -18,17 +18,5 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class,
             CategorySeeder::class,
         ]);
-
-        // User::factory(10)->create();
-
-        $user = User::factory()->create([
-            'name' => 'admin',
-            'email' => 'admin@example.com',
-            'password' => '12345678'
-        ]);
-
-
-        $adminRole = Role::findByName('admin');
-        $user->assignRole($adminRole);
     }
 }

@@ -43,6 +43,7 @@ export interface User {
     created_at: string;
     updated_at: string;
     roles?: Role[];
+    permissions: Permission[];
     [key: string]: unknown; // This allows for additional properties...
 }
 
@@ -56,17 +57,40 @@ export interface Category {
     books_count?: number;
 }
 
+export interface Program {
+    id: number;
+    name: string;
+    description: string | null;
+    courses_count?: number;
+}
+
+export interface Course {
+    id: number;
+    name: string;
+    code: string;
+    description: string | null;
+    program_id: number;
+    program: Program;
+    books_count?: number;
+    faculty?: User[]; // Faculty assigned to this course
+    shelf_books?: Book[]; // Books on the course shelf
+    shelf_books_count?: number; // Count of books on shelf
+}
+
 export interface Book {
     id: number;
     title: string;
     author: string;
-    description: string | null;
+    description: string;
     isbn: string | null;
     cover_image_url: string;
     cover_image_public_id: string | null;
     ebook_url: string | null;
     ebook_public_id: string | null;
-    category?: Category;
+    category: Category;
+    category_id: number;
+    course: Course | null;
+    course_id: number | null;
     publisher: string | null;
     published_year: string | null;
     pages: number | null;
@@ -155,4 +179,9 @@ export interface PaginatedResponse<T> {
     next_page_url: string | null;
     prev_page_url: string | null;
     path: string;
+}
+
+export interface SelectOption {
+    value: string;
+    label: string;
 }

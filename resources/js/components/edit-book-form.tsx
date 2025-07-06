@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { type Book, type Category } from '@/types';
+import { type Book, type Category, type Course } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Edit, FileText, Loader2, Upload, X } from 'lucide-react';
 import { DragEvent, FormEventHandler, useRef, useState } from 'react';
@@ -15,10 +15,11 @@ import { toast } from 'sonner';
 interface EditBookFormProps {
     book: Book;
     categories: Category[];
+    courses: Course[];
     onBookUpdated?: () => void;
 }
 
-export function EditBookForm({ book, categories = [], onBookUpdated }: EditBookFormProps) {
+export function EditBookForm({ book, categories = [], courses = [], onBookUpdated }: EditBookFormProps) {
     const [open, setOpen] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -34,6 +35,7 @@ export function EditBookForm({ book, categories = [], onBookUpdated }: EditBookF
         pages: book.pages?.toString() || '',
         language: book.language || 'en',
         category_id: book.category?.id?.toString() || '',
+        course_id: book.course?.id?.toString() || '',
         description: book.description || '',
         ebook: null as File | null,
         _method: 'PATCH' as const, // Laravel method override for file uploads
@@ -263,6 +265,37 @@ export function EditBookForm({ book, categories = [], onBookUpdated }: EditBookF
                                     )}
                                 </div>
 
+                                {/* Course */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="course">Course (Optional)</Label>
+                                    <Select
+                                        onValueChange={(value) => {
+                                            // Handle the "None" case
+                                            setData('course_id', value === 'none' ? '' : value);
+                                            clearUploadError();
+                                        }}
+                                        value={data.course_id || 'none'}
+                                    >
+                                        <SelectTrigger className={errors.course_id ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder="Assign to a course" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            {courses.map((course) => (
+                                                <SelectItem key={course.id} value={course.id.toString()}>
+                                                    {course.program.name} - {course.name} ({course.code})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.course_id && (
+                                        <p className="flex items-center gap-1 text-sm text-red-600">
+                                            <AlertCircle className="h-3 w-3" />
+                                            {errors.course_id}
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Publisher */}
                                 <div className="space-y-2">
                                     <Label htmlFor="publisher">Publisher</Label>
@@ -480,9 +513,9 @@ export function EditBookForm({ book, categories = [], onBookUpdated }: EditBookF
                     </form>
                 </div>
 
-                <DialogFooter className=" border-t pt-4">
+                <DialogFooter className="border-t pt-4">
                     {isUploading && (
-                        <div className="space-y-4 rounded-lg border p-4 w-full">
+                        <div className="w-full space-y-4 rounded-lg border p-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium">
                                     {uploadStatus === 'uploading' && 'Updating...'}

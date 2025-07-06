@@ -29,6 +29,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view books',
             'bookmark books',
             'system settings',
+            'manage course shelves',
         ];
 
         foreach ($permissions as $permission) {
@@ -62,6 +63,17 @@ class RolesAndPermissionsSeeder extends Seeder
             'bookmark books'
         ]);
 
+        // 👨‍🏫 FACULTY ROLE - Manage course shelves + student permissions
+        $facultyRole = Role::findOrCreate('faculty', 'web');
+        $facultyRole->syncPermissions([
+            'manage course shelves',
+            // Plus all student permissions
+            'browse books',
+            'download books',
+            'view books',
+            'bookmark books'
+        ]);
+
         // 👑 ADMIN ROLE - Everything (highest level)
         $adminRole = Role::findOrCreate('admin', 'web');
         $adminRole->syncPermissions(Permission::all()); // Full access to everything
@@ -77,17 +89,21 @@ class RolesAndPermissionsSeeder extends Seeder
             $superAdminRole->delete();
         }
 
-        // Create default admin user
+        // Create default admin user if they don't exist
         $admin = \App\Models\User::firstOrCreate(
             ['email' => 'admin@example.com'],
-            ['name' => 'System Administrator', 'password' => bcrypt('password')]
+            [
+                'name' => 'System Administrator',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now()
+            ]
         );
         $admin->syncRoles(['admin']);
 
-        // Convert first user to admin if they exist
-        $firstUser = \App\Models\User::first();
-        if ($firstUser && $firstUser->id !== $admin->id) {
-            $firstUser->syncRoles(['admin']);
+        // Find another user to be a student, if available
+        $studentUser = \App\Models\User::where('email', '!=', 'admin@example.com')->first();
+        if ($studentUser) {
+            $studentUser->syncRoles(['student']);
         }
     }
 }

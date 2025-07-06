@@ -5,16 +5,17 @@ import { EditBookForm } from '@/components/edit-book-form';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { PaginatedResponse, type Book, type Category } from '@/types';
+import { PaginatedResponse, type Book, type Category, type Course } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { BookOpen, Eye } from 'lucide-react';
 
 interface BooksIndexProps {
     books: PaginatedResponse<Book>;
     categories: Category[];
+    courses: Course[];
 }
 
-export default function BooksIndex({ books, categories }: BooksIndexProps) {
+export default function BooksIndex({ books, categories, courses }: BooksIndexProps) {
     const handleBookAdded = () => {
         // Refresh the current page to show the new book
         router.reload({ only: ['books'] });
@@ -32,7 +33,7 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-2xl font-semibold">Manage Books</h1>
-                        <AddBookForm categories={categories} onBookAdded={handleBookAdded} />
+                        <AddBookForm categories={categories} courses={courses} onBookAdded={handleBookAdded} />
                     </div>
 
                     <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
@@ -84,7 +85,12 @@ export default function BooksIndex({ books, categories }: BooksIndexProps) {
                                                         View
                                                     </Button>
                                                 </Link>
-                                                <EditBookForm book={book} categories={categories} onBookUpdated={handleBookUpdated} />
+                                                <EditBookForm
+                                                    book={book}
+                                                    categories={categories}
+                                                    courses={courses}
+                                                    onBookUpdated={handleBookUpdated}
+                                                />
                                                 <DeleteBookDialog book={book} />
                                             </div>
                                         </TableCell>
