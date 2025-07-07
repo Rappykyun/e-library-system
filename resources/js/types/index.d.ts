@@ -73,6 +73,7 @@ export interface Course {
     program: Program;
     books_count?: number;
     faculty?: User[]; // Faculty assigned to this course
+    students?: User[]; // Students enrolled in this course
     shelf_books?: Book[]; // Books on the course shelf
     shelf_books_count?: number; // Count of books on shelf
 }

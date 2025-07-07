@@ -147,7 +147,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     return (
         <>
             <div className="fixed top-0 right-0 left-0 z-50 border-b border-sidebar-border/80 bg-white shadow-sm">
-                <div className="hidden h-20 items-center space-x-6 bg-blue-500 lg:flex">
+                <div className="hidden h-20 items-center space-x-6 bg-[#2A5298] lg:flex">
                     <div className="mx-auto flex w-full max-w-7xl items-center px-3">
                         <div className="mr-4">
                             <Link href="/dashboard" className="flex items-center">
