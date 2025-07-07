@@ -73,7 +73,7 @@ export default function BooksIndex({ books, categories, courses }: BooksIndexPro
                                                 <p className="truncate font-semibold">{book.title}</p>
                                             </div>
                                         </TableCell>
-                                        <TableCell>{book.author}</TableCell>
+                                        <TableCell>{book.author.length > 25 ? `${book.author.slice(0, 25)}...` : book.author}</TableCell>
                                         <TableCell>{book.category?.name}</TableCell>
                                         <TableCell>{book.views_count}</TableCell>
                                         <TableCell>{book.download_count}</TableCell>

@@ -18,9 +18,10 @@ class CourseController extends Controller
     public function index()
     {
         return Inertia::render('admin/courses/index', [
-            'courses' => Course::with(['program', 'faculty'])->withCount('books')->latest()->paginate(10),
+            'courses' => Course::with(['program', 'faculty', 'students'])->withCount('shelfBooks')->latest()->paginate(10),
             'programs' => Program::orderBy('name')->get(),
             'faculty' => User::role('faculty')->orderBy('name')->get(),
+            'students' => User::role('student')->orderBy('name')->get(),
         ]);
     }
 
@@ -70,8 +71,6 @@ class CourseController extends Controller
      */
     public function update(Request $request, Course $course)
     {
-
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:255|unique:courses,code,' . $course->id,
@@ -79,6 +78,8 @@ class CourseController extends Controller
             'description' => 'nullable|string',
             'faculty_ids' => 'nullable|array',
             'faculty_ids.*' => 'exists:users,id',
+            'student_ids' => 'nullable|array',
+            'student_ids.*' => 'exists:users,id',
         ]);
 
         $course->update([
@@ -88,13 +89,16 @@ class CourseController extends Controller
             'description' => $validated['description'],
         ]);
 
- 
-        \Log::info('Faculty IDs to sync:', ['faculty_ids' => $request->faculty_ids]);
-
-        if ($request->has('faculty_ids') && is_array($request->faculty_ids)) {
+        if ($request->has('faculty_ids')) {
             $course->faculty()->sync($request->faculty_ids);
         } else {
-            $course->faculty()->detach();
+            $course->faculty()->sync([]);
+        }
+
+        if ($request->has('student_ids')) {
+            $course->students()->sync($request->student_ids);
+        } else {
+            $course->students()->sync([]);
         }
 
         return Redirect::route('admin.courses.index')->with('success', 'Course updated.');
@@ -110,3 +114,4 @@ class CourseController extends Controller
         return Redirect::route('admin.courses.index')->with('success', 'Course deleted.');
     }
 }
+

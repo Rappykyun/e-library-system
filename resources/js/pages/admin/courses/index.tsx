@@ -6,21 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Course, PageProps, Paginated, Program, User } from '@/types';
+import { Course,Paginated, Program, User } from '@/types';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
-interface CoursesIndexProps extends PageProps {
+interface CoursesIndexProps extends Record<string, unknown> {
     courses: Paginated<Course>;
     programs: Program[];
     faculty: User[];
+    students: User[];
 }
 
-export default function CoursesIndex({ auth, courses, programs, faculty }: CoursesIndexProps) {
+export default function CoursesIndex({  courses, programs, faculty, students }: PageProps<CoursesIndexProps>) {
     const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
 
     return (
-        <AppLayout user={auth.user}>
+        <AppLayout >
             <Head title="Manage Courses" />
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -59,10 +60,10 @@ export default function CoursesIndex({ auth, courses, programs, faculty }: Cours
                                                 <TableCell className="font-mono">{course.code}</TableCell>
                                                 <TableCell className="font-medium">{course.name}</TableCell>
                                                 <TableCell>{course.program.name}</TableCell>
-                                                <TableCell>{course.books_count}</TableCell>
+                                                <TableCell>{course.shelf_books_count}</TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end gap-2">
-                                                        <EditCourseForm course={course} programs={programs} faculty={faculty} />
+                                                        <EditCourseForm course={course} programs={programs} faculty={faculty} students={students} />
                                                         <DeleteCourseDialog course={course} />
                                                     </div>
                                                 </TableCell>

@@ -62,7 +62,7 @@ export function BookCard({ book, categories, showAdminActions }: { book: Book; c
 
                     {showAdminActions && (
                         <div className="mt-2 flex items-center justify-end space-x-1">
-                            <EditBookForm book={book} categories={categories} />
+                            <EditBookForm book={book} categories={categories} courses={[]} />
                             <DeleteBookDialog book={book} />
                         </div>
                     )}

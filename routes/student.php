@@ -1,7 +1,7 @@
 <?php
 use App\Http\Controllers\Student\BookController;
 use App\Http\Controllers\Student\BookmarkController;
-
+use App\Http\Controllers\Student\CourseController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -11,6 +11,10 @@ Route::middleware(['auth', 'verified', 'role:student'])
     ->group(function () {
         Route::get('/books', [BookController::class, 'index'])->name('books.index');
         Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
+
+        // My Courses
+        Route::get('/my-courses', [CourseController::class, 'index'])->name('my-courses.index');
+        Route::get('/my-courses/{course}', [CourseController::class, 'show'])->name('my-courses.show');
 
         // Bookmark routes
         Route::get('/bookmarks', [BookmarkController::class, 'index'])->name('bookmarks.index');

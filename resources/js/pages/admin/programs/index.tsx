@@ -80,3 +80,4 @@ export default function ProgramsIndex({ auth, programs }: ProgramsIndexProps) {
         </AppLayout>
     );
 }
+ 

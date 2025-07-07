@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,9 +15,10 @@ interface EditCourseFormProps {
     course: Course;
     programs: Program[];
     faculty: User[];
+    students: User[];
 }
 
-export function EditCourseForm({ course, programs, faculty }: EditCourseFormProps) {
+export function EditCourseForm({ course, programs, faculty, students }: EditCourseFormProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const { data, setData, processing, errors, reset } = useForm({
@@ -25,6 +27,7 @@ export function EditCourseForm({ course, programs, faculty }: EditCourseFormProp
         program_id: course.program_id.toString(),
         description: course.description || '',
         faculty: course.faculty?.map((f: User) => ({ value: f.id.toString(), label: f.name })) || [],
+        students: course.students?.map((s: User) => ({ value: s.id.toString(), label: s.name })) || [],
     });
 
     const submit: FormEventHandler = (e) => {
@@ -36,8 +39,9 @@ export function EditCourseForm({ course, programs, faculty }: EditCourseFormProp
             {
                 // Spread the form data
                 ...data,
-                // And add the transformed faculty_ids
+                // And add the transformed faculty_ids and student_ids
                 faculty_ids: data.faculty.map((f: SelectOption) => f.value),
+                student_ids: data.students.map((s: SelectOption) => s.value),
             },
             {
                 onSuccess: () => {
@@ -52,6 +56,11 @@ export function EditCourseForm({ course, programs, faculty }: EditCourseFormProp
     const facultyOptions: SelectOption[] = faculty.map((f) => ({
         value: f.id.toString(),
         label: f.name,
+    }));
+
+    const studentOptions: SelectOption[] = students.map((s) => ({
+        value: s.id.toString(),
+        label: s.name,
     }));
 
     return (
@@ -109,6 +118,19 @@ export function EditCourseForm({ course, programs, faculty }: EditCourseFormProp
                             placeholder="Select faculty..."
                         />
                         <InputError message={errors.faculty} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="student_ids">Enrolled Students</Label>
+                        <Select
+                            isMulti
+                            options={studentOptions}
+                            value={data.students}
+                            onChange={(selected) => setData('students', selected as SelectOption[])}
+                            className="react-select-container"
+                            classNamePrefix="react-select"
+                            placeholder="Select students..."
+                        />
+                        <InputError message={errors.students} />
                     </div>
                     <div className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>

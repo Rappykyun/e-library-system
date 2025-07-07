@@ -76,6 +76,25 @@ class User extends Authenticatable
         return $this->belongsToMany(Book::class, 'ratings')->withPivot('rating', 'review');
     }
 
+    /**
+     * The courses that the user is a faculty member of.
+     */
+    public function courses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_user');
+    }
+
+    /**
+     * The courses that the user is a student of.
+     */
+    public function enrolledCourses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_student');
+    }
+
+    /**
+     * The courses that the user teaches (faculty specific).
+     */
     public function teachingCourses(): BelongsToMany
     {
         return $this->belongsToMany(Course::class, 'course_user');

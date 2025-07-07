@@ -95,6 +95,12 @@ const studentNavItems: NavItem[] = [
         permission: 'browse books',
     },
     {
+        title: 'My Courses',
+        href: '/student/my-courses',
+        icon: BookUser,
+        permission: 'view enrolled courses',
+    },
+    {
         title: 'My Bookmarks',
         href: '/student/bookmarks',
         icon: BookMarked,
