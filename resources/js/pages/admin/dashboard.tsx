@@ -1,11 +1,11 @@
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartConfig, ChartContainer, ChartLegend, ChartTooltip } from '@/components/ui/chart';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartConfig, ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import AppLayout from '@/layouts/app-layout';
 import { Book, Category, User } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { Activity, BarChart3, BookCopy, Calendar, Download, Eye, GraduationCap, Library, PieChart, TrendingUp, Users } from 'lucide-react';
-import { Area, AreaChart, Cell, Pie, PieChart as RechartsPieChart, XAxis, YAxis } from 'recharts';
+import { Activity, BarChart3, BookCopy, Calendar, Download, Eye, GraduationCap, Library, TrendingUp, Users } from 'lucide-react';
+import { Area, AreaChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
 
 interface StatCardProps {
     title: string;
@@ -19,14 +19,12 @@ interface StatCardProps {
     color?: string;
 }
 
-function StatCard({ title, value, icon, description, trend, color = 'hsl(var(--primary))' }: StatCardProps) {
+function StatCard({ title, value, icon, description, trend, color = 'var(--primary)' }: StatCardProps) {
     return (
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden" style={{ '--stat-card-color': `hsl(${color})` } as React.CSSProperties}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <div className="rounded-full p-2" style={{ backgroundColor: `${color}20` }}>
-                    {icon}
-                </div>
+                <div className="rounded-full bg-[var(--stat-card-color)] p-2">{icon}</div>
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}</div>
@@ -39,7 +37,7 @@ function StatCard({ title, value, icon, description, trend, color = 'hsl(var(--p
                     </div>
                 )}
             </CardContent>
-            <div className="absolute bottom-0 left-0 h-1 w-full" style={{ backgroundColor: color }} />
+            <div className="absolute bottom-0 left-0 h-1 w-full bg-[var(--stat-card-color)]" />
         </Card>
     );
 }
@@ -89,8 +87,15 @@ const chartConfig = {
     },
 } satisfies ChartConfig;
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
-
+const PIE_CHART_COLORS = [
+    '#3b82f6', // Bright Blue
+    '#60a5fa', // Light Blue
+    '#93c5fd', // Sky Blue
+    '#bfdbfe', // Pale Blue
+    '#1d4ed8', // Dark Blue
+    '#1e40af', // Deep Blue
+    '#1e3a8a', // Navy Blue
+];
 export default function AdminDashboard({ stats }: AdminDashboardProps) {
     const combinedMonthlyData = stats.booksByMonth.map((bookData) => {
         const userData = stats.usersByMonth.find((u) => u.month === bookData.month);
@@ -101,9 +106,17 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         };
     });
 
-    const categoryData = stats.booksByCategory.map((category, index) => ({
+    const categoryChartConfig = stats.booksByCategory.reduce((acc, category, index) => {
+        acc[category.name] = {
+            label: category.name,
+            color: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length],
+        };
+        return acc;
+    }, {} as ChartConfig);
+
+    const categoryDataWithColors = stats.booksByCategory.map((category, index) => ({
         ...category,
-        fill: COLORS[index % COLORS.length],
+        fill: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length],
     }));
 
     return (
@@ -129,42 +142,42 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                         value={stats.totalBooks}
                         icon={<Library className="h-4 w-4" />}
                         description="Books in collection"
-                        color="hsl(var(--chart-1))"
+                        color="lightpink"
                     />
                     <StatCard
                         title="Total Users"
                         value={stats.totalUsers}
                         icon={<Users className="h-4 w-4" />}
                         description="Registered users"
-                        color="hsl(var(--chart-2))"
+                        color="var(--chart-2)"
                     />
                     <StatCard
                         title="Programs"
                         value={stats.totalPrograms}
                         icon={<GraduationCap className="h-4 w-4" />}
                         description="Academic programs"
-                        color="hsl(var(--chart-3))"
+                        color="var(--chart-3)"
                     />
                     <StatCard
                         title="Categories"
                         value={stats.totalCategories}
                         icon={<BookCopy className="h-4 w-4" />}
                         description="Book categories"
-                        color="hsl(var(--chart-4))"
+                        color="var(--chart-4)"
                     />
                     <StatCard
                         title="Downloads"
                         value={stats.totalDownloads}
                         icon={<Download className="h-4 w-4" />}
                         description="Total downloads"
-                        color="hsl(var(--chart-5))"
+                        color="var(--chart-5)"
                     />
                     <StatCard
                         title="Views"
                         value={stats.totalViews}
                         icon={<Eye className="h-4 w-4" />}
                         description="Total book views"
-                        color="hsl(var(--chart-1))"
+                        color="var(--chart-1)"
                     />
                 </div>
 
@@ -184,8 +197,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                                 <AreaChart data={combinedMonthlyData}>
                                     <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                                     <YAxis tick={{ fontSize: 12 }} />
-                                    <ChartTooltip />
-                                    <ChartLegend />
+                                    <ChartTooltip content={<ChartTooltipContent />} />
                                     <Area
                                         type="monotone"
                                         dataKey="books"
@@ -209,35 +221,46 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                         </CardContent>
                     </Card>
 
-                    {/* Category Distribution */}
-                    <Card className="lg:col-span-3">
-                        <CardHeader>
+                    {/* category pie chart */}
+                    <Card className="flex flex-col lg:col-span-3">
+                        <CardHeader className="items-center pb-0">
                             <CardTitle className="flex items-center gap-2">
-                                <PieChart className="h-5 w-5" />
+                                <Library className="h-5 w-5" />
                                 Category Distribution
                             </CardTitle>
                             <CardDescription>Books by category</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <ChartContainer config={chartConfig} className="h-[300px]">
-                                <RechartsPieChart>
-                                    <ChartTooltip />
+                        <CardContent className="flex-1 pb-0">
+                            <ChartContainer config={categoryChartConfig} className="mx-auto aspect-square max-h-[350px] min-h-[250px] w-full">
+                                <PieChart>
+                                    <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                                     <Pie
-                                        data={categoryData}
+                                        data={categoryDataWithColors}
                                         dataKey="books_count"
                                         nameKey="name"
                                         cx="50%"
-                                        cy="50%"
-                                        outerRadius={80}
-                                        label={({ name, value }) => `${name}: ${value}`}
+                                        cy="45%"
+                                        outerRadius="70%"
+                                        innerRadius="0%"
                                     >
-                                        {categoryData.map((entry, index) => (
+                                        {categoryDataWithColors.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={entry.fill} />
                                         ))}
                                     </Pie>
-                                </RechartsPieChart>
+                                    <ChartLegend
+                                        wrapperStyle={{
+                                            paddingTop: '20px',
+                                            fontSize: '12px',
+                                        }}
+                                        iconType="circle"
+                                        formatter={(value) => <span className="text-foreground">{value}</span>}
+                                    />
+                                </PieChart>
                             </ChartContainer>
                         </CardContent>
+                        <CardFooter className="flex-col gap-2 pt-2 text-sm">
+                            <div className="text-center leading-none text-muted-foreground">Showing book distribution across all categories</div>
+                        </CardFooter>
                     </Card>
                 </div>
 

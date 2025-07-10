@@ -156,3 +156,18 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Chart-specific styles for better integration with shadcn/ui theme */
+@layer components {
+    .recharts-pie-label-text {
+        @apply fill-foreground font-medium;
+    }
+    
+    .recharts-cartesian-axis-tick-value {
+        @apply fill-muted-foreground;
+    }
+    
+    .recharts-tooltip-wrapper {
+        @apply drop-shadow-md;
+    }
+}

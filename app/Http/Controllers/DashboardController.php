@@ -20,7 +20,7 @@ class DashboardController extends Controller
         if ($request->user()->hasRole('admin')) {
             // Basic stats
             $totalBooks = Book::count();
-            $totalUsers = User::role(['student', 'faculty'])->count();
+            $totalUsers = User::role(['student', 'faculty','librarian'])->count();
             $totalPrograms = Program::count();
             $totalCategories = Category::count();
             $totalDownloads = Book::sum('download_count') ?? 0;
