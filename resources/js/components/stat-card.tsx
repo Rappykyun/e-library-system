@@ -13,12 +13,12 @@ interface StatCardProps {
     color?: string;
 }
 
-export default function StatCard({ title, value, icon, description, trend, color = 'var(--primary)' }: StatCardProps) {
+export default function StatCard({ title, value, icon, description, trend, color }: StatCardProps) {
     return (
-        <Card className="relative overflow-hidden" style={{ '--stat-card-color': `hsl(${color})` } as React.CSSProperties}>
+        <Card className="relative overflow-hidden" style={color ? ({ '--card-accent-color': color } as React.CSSProperties) : undefined}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <div className="rounded-full bg-[var(--stat-card-color)] p-2">{icon}</div>
+                <div className="rounded-full p-2 text-[var(--card-accent-color)]">{icon}</div>
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}</div>
@@ -31,7 +31,7 @@ export default function StatCard({ title, value, icon, description, trend, color
                     </div>
                 )}
             </CardContent>
-            <div className="absolute bottom-0 left-0 h-1 w-full bg-[var(--stat-card-color)]" />
+            <div className="absolute bottom-0 left-0 h-1 w-full bg-[var(--card-accent-color)]" />
         </Card>
     );
 }

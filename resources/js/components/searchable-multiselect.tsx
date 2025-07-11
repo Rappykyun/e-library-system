@@ -44,7 +44,7 @@ export default function SearchableMultiSelect({
                             <span className="text-muted-foreground">{placeholder}</span>
                         ) : (
                             selectedOptions.map((option) => (
-                                <Badge key={option.value} variant="secondary" className="mr-1 mb-1">
+                                <Badge key={option.value} variant="secondary" className="mr-1 mb-1 border-blue-500 hover:bg-gray-300 hover:text-blue-500">
                                     {option.label}
                                     <button
                                         type="button"

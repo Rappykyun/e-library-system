@@ -108,7 +108,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                         value={stats.totalBooks}
                         icon={<Library className="h-4 w-4" />}
                         description="Books in collection"
-                        color="lightpink"
+                        color="var(--chart-1)"
                     />
                     <StatCard
                         title="Total Users"
