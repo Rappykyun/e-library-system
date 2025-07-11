@@ -234,6 +234,14 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
                     {/* ✅ Right side - Only user avatar */}
                     <div className="ml-auto flex items-center space-x-2">
+                        <div className="flex items-center space-x-2">
+                            {auth.user && (
+                                <div className="flex flex-col items-end">
+                                    <span className="text-xs font-medium">{auth.user.name}</span>
+                                    <span className="text-xs font-medium capitalize">{auth.roles[0]}</span>
+                                </div>
+                            )}
+                        </div>
                         {auth.user && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

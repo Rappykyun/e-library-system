@@ -1,11 +1,12 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
 
 import DeleteUser from '@/components/delete-user';
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,22 +23,38 @@ const breadcrumbs: BreadcrumbItem[] = [
 type ProfileForm = {
     name: string;
     email: string;
+    avatar: File | null;
 };
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
+    const { data, setData, post, errors, processing, recentlySuccessful } = useForm<ProfileForm>({
         name: auth.user.name,
         email: auth.user.email,
+        avatar: null,
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        patch(route('profile.update'), {
+        post(route('profile.update'), {
             preserveScroll: true,
+            onSuccess: () => {
+                setAvatarPreview(null);
+            },
         });
+    };
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setData('avatar', file);
+        if (file) {
+            setAvatarPreview(URL.createObjectURL(file));
+        } else {
+            setAvatarPreview(null);
+        }
     };
 
     return (
@@ -49,6 +66,17 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                     <HeadingSmall title="Profile information" description="Update your name and email address" />
 
                     <form onSubmit={submit} className="space-y-6">
+                        <div className="grid gap-2">
+                            <Label htmlFor="avatar">Avatar</Label>
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-20 w-20">
+                                    <AvatarImage src={avatarPreview ?? auth.user.avatar ?? undefined} />
+                                    <AvatarFallback>{auth.user.name[0]}</AvatarFallback>
+                                </Avatar>
+                                <Input id="avatar" type="file" className="block w-full" onChange={handleAvatarChange} accept="image/*" />
+                            </div>
+                            <InputError className="mt-2" message={errors.avatar} />
+                        </div>
                         <div className="grid gap-2">
                             <Label htmlFor="name">Name</Label>
 

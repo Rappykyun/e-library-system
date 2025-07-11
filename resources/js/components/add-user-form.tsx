@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from '@inertiajs/react';
-//import { Sparkles } from 'lucide-react';
 import { FormEventHandler } from 'react';
 import { toast } from 'sonner';
 
@@ -13,8 +12,8 @@ export function AddUserForm({ onClose }: { onClose: () => void }) {
         name: '',
         email: '',
         role: 'student',
-        password: '',
-        password_confirmation: '',
+        password: '12345678',
+        password_confirmation: '12345678',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -31,16 +30,6 @@ export function AddUserForm({ onClose }: { onClose: () => void }) {
             },
         });
     };
-
-    // const generatePassword = () => {
-    //     const newPassword = Math.random().toString(36).slice(-10); // 10-char random string
-    //     setData({
-    //         ...data,
-    //         password: newPassword,
-    //         password_confirmation: newPassword,
-    //     });
-    //     toast.info('Generated a new password. Make sure to save it!');
-    // };
 
     return (
         <form onSubmit={submit} className="space-y-4">
@@ -71,10 +60,6 @@ export function AddUserForm({ onClose }: { onClose: () => void }) {
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    {/* <Button type="button" variant="outline" size="sm" onClick={generatePassword}>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Generate
-                    </Button> */}
                 </div>
                 <Input id="password" type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} required />
                 <InputError message={errors.password} className="mt-2" />
@@ -83,7 +68,7 @@ export function AddUserForm({ onClose }: { onClose: () => void }) {
                 <Label htmlFor="password_confirmation">Confirm Password</Label>
                 <Input
                     id="password_confirmation"
-                    type="password"
+                    type=""
                     value={data.password_confirmation}
                     onChange={(e) => setData('password_confirmation', e.target.value)}
                     required
