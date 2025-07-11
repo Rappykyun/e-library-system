@@ -6,41 +6,7 @@ import { Book, Category, User } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Activity, BarChart3, BookCopy, Calendar, Download, Eye, GraduationCap, Library, TrendingUp, Users } from 'lucide-react';
 import { Area, AreaChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
-
-interface StatCardProps {
-    title: string;
-    value: number | string;
-    icon: React.ReactNode;
-    description?: string;
-    trend?: {
-        value: number;
-        isPositive: boolean;
-    };
-    color?: string;
-}
-
-function StatCard({ title, value, icon, description, trend, color = 'var(--primary)' }: StatCardProps) {
-    return (
-        <Card className="relative overflow-hidden" style={{ '--stat-card-color': `hsl(${color})` } as React.CSSProperties}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <div className="rounded-full bg-[var(--stat-card-color)] p-2">{icon}</div>
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}</div>
-                {description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}
-                {trend && (
-                    <div className={`mt-2 flex items-center text-xs ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                        <TrendingUp className="mr-1 h-3 w-3" />
-                        {trend.isPositive ? '+' : ''}
-                        {trend.value}% from last month
-                    </div>
-                )}
-            </CardContent>
-            <div className="absolute bottom-0 left-0 h-1 w-full bg-[var(--stat-card-color)]" />
-        </Card>
-    );
-}
+import StatCard from '@/components/stat-card';
 
 interface PopularBook extends Pick<Book, 'id' | 'title' | 'author' | 'download_count'> {
     category?: Pick<Category, 'name'>;
