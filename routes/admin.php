@@ -26,7 +26,6 @@ Route::middleware(['auth', 'verified', 'role:admin'])
     ->name('admin.')
     ->group(function () {
         Route::resource('/users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
-        // Add future admin-only routes here (settings, reports, etc.)
         Route::resource('programs', ProgramController::class);
         Route::resource('courses', CourseController::class);
     });

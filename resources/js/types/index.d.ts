@@ -44,7 +44,7 @@ export interface User {
     updated_at: string;
     roles?: Role[];
     permissions: Permission[];
-    [key: string]: unknown; // This allows for additional properties...
+    [key: string]: unknown;
 }
 
 export interface Category {
@@ -72,10 +72,10 @@ export interface Course {
     program_id: number;
     program: Program;
     books_count?: number;
-    faculty?: User[]; // Faculty assigned to this course
-    students?: User[]; // Students enrolled in this course
-    shelf_books?: Book[]; // Books on the course shelf
-    shelf_books_count?: number; // Count of books on shelf
+    faculty?: User[]; 
+    students?: User[]; 
+    shelf_books?: Book[]; 
+    shelf_books_count?: number; 
 }
 
 export interface Book {
@@ -100,9 +100,8 @@ export interface Book {
     views_count: number;
     created_at: string;
     updated_at: string;
-    // User relationship data (when withUserData is used)
     bookmarks?: Bookmark[];
-    ratings?: Rating[];
+
 }
 
 export interface Bookmark {

@@ -1,136 +1,116 @@
-flowchart TD
-    %% ===================================
-    %% STYLING
-    %% ===================================
-    classDef startEnd fill:#ff9500,stroke:#333,stroke-width:2px,color:#fff
-    classDef process fill:#555,stroke:#333,stroke-width:2px,color:#fff
-    classDef decision fill:#4a90e2,stroke:#333,stroke-width:2px,color:#fff
-    classDef error fill:#dc3545,stroke:#333,stroke-width:2px,color:#fff
-    classDef spacer stroke:none,fill:none
+graph TD
+    %% === Style Definitions ===
+    classDef startEnd fill:#FBBF24,stroke:#D97706,stroke-width:3px,color:#92400E,font-weight:bold
+    classDef process fill:#374151,stroke:#6B7280,stroke-width:2px,color:#F9FAFB,font-weight:bold
+    classDef decision fill:#3B82F6,stroke:#1D4ED8,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef data fill:#8B5CF6,stroke:#7C3AED,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef database fill:#F59E0B,stroke:#D97706,stroke-width:2px,color:#92400E,font-weight:bold
+    classDef document fill:#6B7280,stroke:#4B5563,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef adminFeature fill:#DC2626,stroke:#991B1B,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef librarianFeature fill:#059669,stroke:#047857,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef facultyFeature fill:#7C2D12,stroke:#451A03,stroke-width:2px,color:#FFFFFF,font-weight:bold
+    classDef studentFeature fill:#1E40AF,stroke:#1E3A8A,stroke-width:2px,color:#FFFFFF,font-weight:bold
 
-    %% START
-    Start([📚 START: E-Library System Entry 📚]):::startEnd
+    %% === Main Entry & Auth ===
+    Start([🚀 E-Library System]):::startEnd 
+    Start --> DisplayLogin[📝 Display Login Page]:::process
+    subgraph "🔐 Authentication Process"
+        direction TB
+        DisplayLogin --> InputCredentials[/📊 Enter User Credentials/]:::data
+        InputCredentials --> Validate[🔍 Validate Credentials]:::process
+        Validate --> IsValid{✅ Login Valid?}:::decision
+        IsValid -->|❌ No| AuthFail[⚠️ Show Error Message]:::process --> DisplayLogin
+        IsValid -->|✅ Yes| CheckRole{👤 Check User Role}:::decision
+    end
 
-    Start --> Login[🔐 User Login 🔐]:::process
-    Login --> AuthCheck{🔍 Is Authentication Valid?}:::decision
+    %% === Dashboards ===
+    CheckRole -->|🎛️| AdminDash[🎛️ Admin Dashboard]:::adminFeature
+    CheckRole -->|📚| LibrarianDash[📚 Librarian Dashboard]:::librarianFeature
+    CheckRole -->|👨‍🏫| FacultyDash[👨‍🏫 Faculty Dashboard]:::facultyFeature
+    CheckRole -->|🎓| StudentDash[🎓 Student Dashboard]:::studentFeature
 
-    AuthCheck -->|❌ No| AuthFail[❌ Login Failed]:::error
-    AuthFail --> ForgotPass{🔑 Forgot Password?}:::decision
-    ForgotPass -->|✅ Yes| PasswordReset[📧 Password Reset Email Sent]:::process
-    PasswordReset --> NewPassword[🔒 Set New Password]:::process --> Login
-    ForgotPass -->|❌ No| Login
+    %% === STUDENT FLOW ===
+    subgraph "🎓 Student Features"
+        direction TB
+        StudentDash --> StudentChoice{Select Action}:::decision
+        StudentChoice -->|🔍 Browse| BrowseBooks[Browse Books & Filter]:::studentFeature
+        BrowseBooks --> DisplayBookList[/Display Book List/]:::data
+        DisplayBookList --> SelectBook[Select Book]:::process
+        SelectBook --> ShowBookDetails[📄 Show Book Details]:::process
+        ShowBookDetails --> BookAction{Choose Action}:::decision
+        BookAction -->|👀 Read| ViewPDF[📖 Display PDF Viewer]:::document
+        BookAction -->|⭐ Bookmark| ToggleBookmark[⭐ Toggle Bookmark]:::process
+        ToggleBookmark --> UpdateBookmarksDB[(💾 Update Bookmarks)]:::database
+        
+        StudentChoice -->|⭐ My Bookmarks| ViewBookmarks[View Bookmarked Books]:::studentFeature
+        ViewBookmarks --> DisplayBookmarkList
+        
+        StudentChoice -->|📚 My Courses| ViewEnrolledCourses[View Enrolled Courses]:::studentFeature
+        ViewEnrolledCourses --> SelectCourse[Select a Course]:::process
+        SelectCourse --> DisplayCourseBooks[/Display Course Books/]:::data
+    end
 
-    AuthCheck -->|✅ Yes| EmailVerified{📧 Is Email Verified?}:::decision
-    EmailVerified -->|❌ No| SendVerification[📤 Send Verification Email]:::process
-    SendVerification --> VerifyEmail[✉️ Click Verification Link]:::process --> EmailVerified
-    EmailVerified -->|✅ Yes| RoleCheck{👤 Check User Role}:::decision
+    %% === FACULTY FLOW ===
+    subgraph "👨‍🏫 Faculty Features"
+        direction TB
+        FacultyDash --> FacultyChoice{Select Action}:::decision
+        FacultyChoice -->|📖 Course Shelf| ViewAssignedCourses[View Assigned Courses]:::facultyFeature
+        ViewAssignedCourses --> SelectFacultyCourse[Select a Course]:::process
+        SelectFacultyCourse --> DisplayFacultyCourseBooks
+        FacultyChoice -->|🔍 Browse| FacultyBrowseLink[🔗 Follows Student Browse Flow]:::process
+    end
 
-    %% ROLE-BASED
-    RoleCheck -->|👑 Admin| AdminDash[📊 Admin Dashboard]:::process
-    RoleCheck -->|📚 Librarian| LibrarianDash[📚 Librarian Dashboard]:::process
-    RoleCheck -->|👨‍🏫 Faculty| FacultyDash[🎓 Faculty Dashboard]:::process
-    RoleCheck -->|🎓 Student| StudentDash[📚 Student Dashboard]:::process
+    %% === LIBRARIAN & CONTENT MGMT FLOW ===
+    subgraph "📚 Librarian & Content Management"
+        direction TB
+        LibrarianDash --> LibChoice{Select Action}:::decision
+        LibChoice -->|📖 Books| LibManageBooks[📖 Manage Books]:::librarianFeature
+        LibManageBooks --> LibBookAction{Action}:::decision
+        LibBookAction -- Add --> LibAddBook[Add Book Form]:::data --> LibCreateBook[Create Book Record]:::process --> LibStoreBook[(Save to DB)]:::database --> LibManageBooks
+        LibBookAction -- Edit --> LibEditBook[Edit Book Form]:::data --> LibUpdateBook[Update Book Record]:::process --> LibUpdateBookDB[(Update DB)]:::database --> LibManageBooks
+        LibBookAction -- Delete --> LibConfirmDelete{Delete?}:::decision -- Yes --> LibDeleteBook[Delete Book Record]:::process --> LibDeleteBookDB[(Delete from DB)]:::database --> LibManageBooks
 
-    %% COMMON: PROFILE & LOGOUT
-    AdminDash --> AdminChoice{🎯 Admin Action?}:::decision
-    LibrarianDash --> LibrarianChoice{🎯 Librarian Action?}:::decision
-    FacultyDash --> FacultyChoice{🎯 Faculty Action?}:::decision
-    StudentDash --> StudentChoice{🎯 Student Action?}:::decision
+        LibChoice -->|🏷️ Categories| LibManageCats[🏷️ Manage Categories]:::librarianFeature
+    end
 
-    %% LOGOUT
-    AdminChoice -->|🚪 Logout| LogoutProcess[🚪 Logout]:::process
-    LibrarianChoice -->|🚪 Logout| LogoutProcess
-    FacultyChoice -->|🚪 Logout| LogoutProcess
-    StudentChoice -->|🚪 Logout| LogoutProcess
-    LogoutProcess --> LogoutComplete([👋 END: Session Ended 👋]):::startEnd
+    %% === ADMIN FLOW ===
+    subgraph "🎛️ Admin Features (CRUD Operations)"
+        direction TB
+        AdminDash --> AdminChoice{Select Management Area}:::decision
+        
+        AdminChoice -->|👥 Users| AdminUserMgmt[👥 Manage Users]:::adminFeature
+        AdminUserMgmt --> UserAction{Action}:::decision
+        UserAction -- Add --> AddUser[Add User Form]:::data --> CreateUser[Create Record]:::process --> StoreUser[(Save to DB)]:::database --> AdminUserMgmt
+        UserAction -- Edit --> EditUser[Edit User Form]:::data --> UpdateUser[Update Record]:::process --> UpdateUserDB[(Update DB)]:::database --> AdminUserMgmt
+        UserAction -- Delete --> ConfirmDeleteUser{Delete?}:::decision -- Yes --> DeleteUser[Delete Record]:::process --> DeleteUserDB[(Delete from DB)]:::database --> AdminUserMgmt
+        
+        AdminChoice -->|🎓 Programs| AdminProgMgmt[🎓 Manage Programs]:::adminFeature
+        AdminProgMgmt --> ProgAction{Action}:::decision
+        ProgAction -- Add --> AddProg[Add Program Form]:::data --> CreateProg[Create Record]:::process --> StoreProg[(Save to DB)]:::database --> AdminProgMgmt
+        ProgAction -- Edit --> EditProg[Edit Program Form]:::data --> UpdateProg[Update Record]:::process --> UpdateProgDB[(Update DB)]:::database --> AdminProgMgmt
+        ProgAction -- Delete --> ConfirmDeleteProg{Delete?}:::decision -- Yes --> DeleteProg[Delete Record]:::process --> DeleteProgDB[(Delete from DB)]:::database --> AdminProgMgmt
 
-    %% PROFILE MANAGEMENT
-    AdminChoice -->|👤 Profile| ProfileMgmt[👤 Profile Management]:::process
-    LibrarianChoice -->|👤 Profile| ProfileMgmt
-    FacultyChoice -->|👤 Profile| ProfileMgmt
-    StudentChoice -->|👤 Profile| ProfileMgmt
+        AdminChoice -->|📚 Courses| AdminCourseMgmt[📚 Manage Courses]:::adminFeature
+        AdminCourseMgmt --> CourseAction{Action}:::decision
+        CourseAction -- Add --> AddCourse[Add Course Form]:::data --> CreateCourse[Create Record]:::process --> StoreCourse[(Save to DB)]:::database --> AdminCourseMgmt
+        CourseAction -- Edit --> EditCourse[Edit Course Form]:::data --> UpdateCourse[Update Record]:::process --> UpdateCourseDB[(Update DB)]:::database --> AdminCourseMgmt
+        CourseAction -- Delete --> ConfirmDeleteCourse{Delete?}:::decision -- Yes --> DeleteCourse[Delete Record]:::process --> DeleteCourseDB[(Delete from DB)]:::database --> AdminCourseMggmt
 
-    ProfileMgmt --> ProfileAction{⚙️ Profile Action?}:::decision
-    ProfileAction -->|✏️ Edit| EditProfile[🔧 Edit Profile]:::process --> ProfileMgmt
-    ProfileAction -->|🔒 Password| ChangePassword[🔒 Change Password]:::process --> ProfileMgmt
+        AdminChoice -->|📖 Books| AdminBookLink[🔗 Follows Librarian Book Flow]:::process
+        AdminChoice -->|🏷️ Categories| AdminCatLink[🔗 Follows Librarian Category Flow]:::process
+    end
 
-    %% ADMIN EXCLUSIVE
-    AdminChoice -->|👥 Users| UserMgmt[👤 User Management]:::process
-    UserMgmt --> UserAction{⚙️ User Action?}:::decision
-    UserAction -->|👀 View| ViewUsers[📋 View All Users] --> UserMgmt
-    UserAction -->|➕ Add| CreateUser[👤 Create New User] --> UserMgmt
-    UserAction -->|✏️ Edit| EditUser[🔧 Edit User Details] --> UserMgmt
-    UserAction -->|🗑️ Delete| DeleteUser[❌ Delete User]:::error --> UserMgmt
-
-    AdminChoice -->|🎓 Programs| ProgramMgmt[🏫 Program Management]:::process
-    ProgramMgmt --> ProgAction{⚙️ Program Action?}:::decision
-    ProgAction -->|➕ Add| CreateProg[➕ Create Program] --> ProgramMgmt
-    ProgAction -->|✏️ Edit| EditProg[✏️ Edit Program] --> ProgramMgmt
-    ProgAction -->|🗑️ Delete| DeleteProg[❌ Delete Program]:::error --> ProgramMgmt
-
-    AdminChoice -->|📚 Courses| CourseMgmt[📖 Course Management]:::process
-    CourseMgmt --> CourseAction{⚙️ Course Action?}:::decision
-    CourseAction -->|➕ Add| CreateCourse[➕ Create Course] --> CourseMgmt
-    CourseAction -->|✏️ Edit| EditCourse[✏️ Edit Course] --> CourseMgmt
-    CourseAction -->|🗑️ Delete| DeleteCourse[❌ Delete Course]:::error --> CourseMgmt
-
-    AdminChoice -->|📈 Analytics| AdminAnalytics[📊 System Analytics]:::process
-    AdminAnalytics --> AnalyticsView{📋 View Analytics?}:::decision
-    AnalyticsView -->|📚 Books| BookAnalytics[📈 Book Statistics] --> AdminAnalytics
-    AnalyticsView -->|👥 Users| UserAnalytics[👤 User Statistics] --> AdminAnalytics
-
-    %% BOOK & CATEGORY SHARED
-    AdminChoice -->|📚 Books| BookMgmt[📖 Book Management]:::process
-    LibrarianChoice -->|📚 Books| BookMgmt
-    AdminChoice -->|🏷️ Categories| CategoryMgmt[📂 Category Management]:::process
-    LibrarianChoice -->|🏷️ Categories| CategoryMgmt
-
-    BookMgmt --> BookAction{⚙️ Book Action?}:::decision
-    BookAction -->|➕ Add| CreateBook[➕ Create New Book] --> BookMgmt
-    BookAction -->|✏️ Edit| EditBook[✏️ Edit Book Details] --> BookMgmt
-    BookAction -->|🗑️ Delete| DeleteBook[🗑️ Delete Book]:::error --> BookMgmt
-
-    CategoryMgmt --> CatAction{⚙️ Category Action?}:::decision
-    CatAction -->|➕ Add| CreateCat[➕ Create Category] --> CategoryMgmt
-    CatAction -->|✏️ Edit| EditCat[✏️ Edit Category] --> CategoryMgmt
-    CatAction -->|🗑️ Delete| DeleteCat[🗑️ Delete Category]:::error --> CategoryMgmt
-
-    %% FACULTY FLOW
-    FacultyChoice -->|📚 My Courses| CourseShelf[📖 Course Shelf Management]:::process
-    CourseShelf --> ShelfAction{⚙️ Shelf Action?}:::decision
-    ShelfAction -->|👀 View| ViewCourseShelf[📋 View Course Resources] --> CourseShelf
-    ShelfAction -->|✏️ Edit| EditCourseShelf[🔧 Edit Course Shelf] --> CourseShelf
-
-    FacultyChoice -->|📖 Browse Books| FacultyBooks[📚 Browse Library Books]:::process
-    FacultyBooks --> FacultyBookAction{📖 Book Action?}:::decision
-    FacultyBookAction -->|👀 View| FacultyViewBook[📖 View Book Details] --> FacultyBooks
-    FacultyBookAction -->|⬇️ Download| FacultyDownload[📥 Download Book] --> FacultyBooks
-
-    %% STUDENT FLOW
-    StudentChoice -->|📖 Browse Books| BrowseBooks[📚 Browse Library Collection]:::process
-    BrowseBooks --> BookFilter{🔍 Filter Books?}:::decision
-    BookFilter -->|🏷️ By Category| FilterCategory[📂 Filter by Category] --> BrowseBooks
-    BookFilter -->|🎓 By Program| FilterProgram[🏫 Filter by Program] --> BrowseBooks
-    BookFilter -->|🔍 By Search| SearchBooks[🔎 Search Books] --> BrowseBooks
-
-    BrowseBooks --> BookDetails[📖 View Book Details]:::process
-    BookDetails --> BookAction2{📖 Book Action?}:::decision
-    BookAction2 -->|📖 Read| ReadBook[👓 Read Book Online] --> BookDetails
-    BookAction2 -->|⬇️ Download| DownloadBook[📥 Download Book] --> BookDetails
-    BookAction2 -->|🔖 Bookmark| AddBookmark[🔖 Add to Bookmarks] --> BookDetails
-    BookAction2 -->|⭐ Rate| RateBook[⭐ Rate Book] --> BookDetails
-
-    StudentChoice -->|🎓 My Courses| MyCourses[📚 My Enrolled Courses]:::process
-    MyCourses --> CourseView{📖 Course Action?}:::decision
-    CourseView -->|👀 View| ViewCourse[📋 View Course Materials] --> MyCourses
-
-    StudentChoice -->|🔖 My Bookmarks| BookmarkMgmt[🔖 Bookmark Management]:::process
-    BookmarkMgmt --> BookmarkAction{⚙️ Bookmark Action?}:::decision
-    BookmarkAction -->|👀 View| ViewBookmarks[📋 View All Bookmarks] --> BookmarkMgmt
-    BookmarkAction -->|🗑️ Remove| RemoveBookmark[❌ Remove Bookmark]:::error --> BookmarkMgmt
-
-    %% APPLY STYLES
-    class Start,LogoutComplete startEnd
-    class AuthFail,DeleteBook,DeleteCat,DeleteUser,DeleteProg,DeleteCourse,RemoveBookmark error
-    class AdminDash,FacultyDash,StudentDash,BookMgmt,CategoryMgmt,UserMgmt,ProgramMgmt,CourseMgmt,LibrarianDash,ProfileMgmt,LogoutProcess process
-    class AuthCheck,EmailVerified,RoleCheck,AdminChoice,FacultyChoice,StudentChoice,BookAction,CatAction,LibrarianChoice,BookAction2,BookmarkAction,UserAction,ProgAction,CourseAction,ShelfAction,FacultyBookAction,BookFilter,CourseView,ProfileAction,AnalyticsView,ForgotPass decision
+    %% === Links & Endpoints ===
+    subgraph "Session Management"
+      Logout[🚪 Logout]:::process --> End([🏁 Session Ended]):::startEnd
+      AdminDash --> Logout
+      LibrarianDash --> Logout
+      FacultyDash --> Logout
+      StudentDash --> Logout
+    end
+    
+    FacultyBrowseLink --> BrowseBooks
+    AdminBookLink --> LibManageBooks
+    AdminCatLink --> LibManageCats
+    ViewPDF --> ShowBookDetails
+    UpdateBookmarksDB --> ShowBookDetails

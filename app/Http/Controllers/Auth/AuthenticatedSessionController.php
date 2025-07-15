@@ -33,11 +33,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = $request->user();
+        $user = Auth::user();
 
-        // If the user is faculty, make sure their courses are loaded into the session.
+
         if ($user->hasRole('faculty')) {
             $user->load('teachingCourses');
+
+            return redirect()->intended(route('faculty.courses.index', absolute: false));
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

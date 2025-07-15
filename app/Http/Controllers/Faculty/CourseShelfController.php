@@ -22,14 +22,14 @@ class CourseShelfController extends Controller
         return Inertia::render('faculty/courses/index', ['courses' => $courses]);
     }
 
-    // Show the shelf for a specific course to manage it
+
     public function show(Course $course)
     {
-        // Ensure the faculty is assigned to this course
+
         abort_if(!Auth::user()->teachingCourses()->where('id', $course->id)->exists(), 403);
 
-        $course->load('shelfBooks'); // Books currently on the shelf
-        $allBooks = Book::orderBy('title')->get(); // All books in the library to choose from
+        $course->load('shelfBooks'); 
+        $allBooks = Book::orderBy('title')->get(); 
 
         return Inertia::render('faculty/courses/show', [
             'course' => $course,

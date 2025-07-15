@@ -17,7 +17,7 @@ class BookController extends Controller
 
         $books = Book::query()
             ->with('category')
-            ->withUserData(Auth::user()) // Add this line to load user bookmarks
+            ->withUserData(Auth::user()) 
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")->orWhere('author', 'like', "%{$search}%");
@@ -31,7 +31,7 @@ class BookController extends Controller
                 }
             })
             ->latest()
-            ->paginate(4)
+            ->paginate(8)
             ->withQueryString();
 
         $categories = Category::orderBy('name')->get();

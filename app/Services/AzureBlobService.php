@@ -116,9 +116,9 @@ class AzureBlobService
         $headers = $this->generateHeaders('PUT', $blobName, $contentLength, $contentType);
 
         try {
-            // Thumbnails are usually small, but still give reasonable timeout
+            
             $response = Http::withHeaders($headers)
-                ->timeout(60) // 1 minute for thumbnails
+                ->timeout(60) 
                 ->connectTimeout(15)
                 ->withBody($content, $contentType)
                 ->put($url);

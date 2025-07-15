@@ -48,7 +48,7 @@ export function DeleteProgramDialog({ program }: { program: Program }) {
                     <AlertDialogAction
                         onClick={handleDelete}
                         disabled={isSubmitting}
-                        className="bg-destructive-foreground"
+                        
                     >
                         {isSubmitting ? "Deleting..." : "Delete"}
                     </AlertDialogAction>

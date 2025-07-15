@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { PageProps, Paginated, Program } from '@/types';
+import {  Paginated, Program } from '@/types';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -14,11 +14,11 @@ interface ProgramsIndexProps extends PageProps {
     programs: Paginated<Program>;
 }
 
-export default function ProgramsIndex({ auth, programs }: ProgramsIndexProps) {
+export default function ProgramsIndex({  programs }: ProgramsIndexProps) {
     const [isAddProgramOpen, setIsAddProgramOpen] = useState(false);
 
     return (
-        <AppLayout user={auth.user}>
+        <AppLayout >
             <Head title="Manage Programs" />
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -44,6 +44,7 @@ export default function ProgramsIndex({ auth, programs }: ProgramsIndexProps) {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="w-1/2">Name</TableHead>
+                         
                                         <TableHead>Courses</TableHead>
                                         <TableHead>Books</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -54,6 +55,7 @@ export default function ProgramsIndex({ auth, programs }: ProgramsIndexProps) {
                                         programs.data.map((program) => (
                                             <TableRow key={program.id}>
                                                 <TableCell className="font-medium">{program.name}</TableCell>
+                                              
                                                 <TableCell>{program.courses_count}</TableCell>
                                                 <TableCell>0</TableCell>
                                                 <TableCell className="text-right">

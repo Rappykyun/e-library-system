@@ -48,7 +48,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // 📚 LIBRARIAN ROLE - Manage books and categories + dashboard
         $librarianRole = Role::findOrCreate('librarian', 'web');
         $librarianRole->syncPermissions([
-            'view dashboard',
+            // 'view dashboard',
             'upload books',
             'edit books',
             'delete books',

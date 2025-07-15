@@ -57,12 +57,6 @@ const adminNavItems: NavItem[] = [
 // 📚 Librarian Navigation - Book Management Only
 const librarianNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-        permission: 'view dashboard',
-    },
-    {
         title: 'Books',
         href: '/admin/books',
         icon: Library,
@@ -232,13 +226,14 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         </NavigationMenu>
                     </div>
 
-                    {/* ✅ Right side - Only user avatar */}
+                    {/* ✅ Right side avatar */}
                     <div className="ml-auto flex items-center space-x-2">
                         <div className="flex items-center space-x-2">
                             {auth.user && (
                                 <div className="flex flex-col items-end">
-                                    <span className="text-xs font-medium">{auth.user.name}</span>
-                                    <span className="text-xs font-medium capitalize">{auth.roles[0]}</span>
+                                    <span className="text-xs font-medium text-gray-600">{auth.user.name}</span>
+
+                                    <span className="text-xs font-medium text-gray-600 capitalize">{auth.roles[0]}</span>
                                 </div>
                             )}
                         </div>

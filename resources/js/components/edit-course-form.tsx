@@ -37,8 +37,8 @@ export function EditCourseForm({ course, programs, faculty, students }: EditCour
                 setIsOpen(false);
                 reset();
             },
-            preserveState: true,
-        });
+            preserveState: false,
+        }); 
     };
 
     const facultyOptions = faculty.map((f) => ({

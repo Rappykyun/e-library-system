@@ -1,6 +1,6 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { Course, PageProps } from '@/types';
+import { Course } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { BookMarked } from 'lucide-react';
 
@@ -8,11 +8,10 @@ interface FacultyCoursesIndexProps extends PageProps {
     courses: Course[];
 }
 
-export default function FacultyCoursesIndex({ auth, courses }: FacultyCoursesIndexProps) {
+export default function FacultyCoursesIndex({ courses }: FacultyCoursesIndexProps) {
     return (
-        <AppLayout user={auth.user}>
+        <AppLayout>
             <Head title="My Courses" />
-
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <Card>

@@ -27,6 +27,7 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         title: '',
+        
         author: '',
         publisher: '',
         isbn: '',
@@ -493,7 +494,9 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                                         Browse Files
                                                     </Button>
                                                 </div>
-                                                <p className="text-xs text-gray-500">Supported: PDF, EPUB (Max: 30MB)</p>
+                                                <p className="text-xs text-gray-500">
+                                                    Supported: PDF, EPUB <span className="font-bold">(Max: 30MB)</span>
+                                                </p>
                                             </div>
                                         )}
                                     </div>

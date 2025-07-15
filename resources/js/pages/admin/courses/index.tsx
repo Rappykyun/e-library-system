@@ -48,6 +48,7 @@ export default function CoursesIndex({  courses, programs, faculty, students }: 
                                     <TableRow>
                                         <TableHead>Code</TableHead>
                                         <TableHead>Name</TableHead>
+                                        <TableHead>Description</TableHead>
                                         <TableHead>Program</TableHead>
                                         <TableHead>Books</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -59,6 +60,11 @@ export default function CoursesIndex({  courses, programs, faculty, students }: 
                                             <TableRow key={course.id}>
                                                 <TableCell className="font-mono">{course.code}</TableCell>
                                                 <TableCell className="font-medium">{course.name}</TableCell>
+                                                <TableCell className="align-top">
+                                                    {course.description && course.description.length > 100 
+                                                        ? `${course.description.substring(0, 100)}...` 
+                                                        : course.description}
+                                                </TableCell>
                                                 <TableCell>{course.program.name}</TableCell>
                                                 <TableCell>{course.shelf_books_count}</TableCell>
                                                 <TableCell className="text-right">
