@@ -14,7 +14,11 @@ class CourseController extends Controller
     {
         $student = Auth::user();
 
-        $courses = $student->enrolledCourses()->with('faculty', 'program')->withCount('shelfBooks')->get();
+        $courses = $student->enrolledCourses()
+            ->where('status', 'active')
+            ->with('faculty', 'program')
+            ->withCount('shelfBooks')
+            ->get();
 
         return Inertia::render('student/courses/index', [
             'courses' => $courses

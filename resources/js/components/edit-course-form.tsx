@@ -25,6 +25,7 @@ export function EditCourseForm({ course, programs, faculty, students }: EditCour
         code: course.code,
         program_id: course.program_id.toString(),
         description: course.description || '',
+        status: course.status || 'active',
         faculty_ids: course.faculty?.map((f: User) => f.id.toString()) || [],
         student_ids: course.students?.map((s: User) => s.id.toString()) || [],
     });
@@ -38,7 +39,7 @@ export function EditCourseForm({ course, programs, faculty, students }: EditCour
                 reset();
             },
             preserveState: false,
-        }); 
+        });
     };
 
     const facultyOptions = faculty.map((f) => ({
@@ -93,6 +94,19 @@ export function EditCourseForm({ course, programs, faculty, students }: EditCour
                         <Label htmlFor="description">Description</Label>
                         <Textarea id="description" value={data.description} onChange={(e) => setData('description', e.target.value)} rows={3} />
                         <InputError message={errors.description} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="status">Status</Label>
+                        <ShadSelect onValueChange={(value) => setData('status', value)} defaultValue={data.status}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="archived">Archived</SelectItem>
+                            </SelectContent>
+                        </ShadSelect>
+                        <InputError message={errors.status} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="faculty_ids">Assigned Faculty</Label>

@@ -16,6 +16,8 @@ class CourseShelfController extends Controller
     {
         $courses = Auth::user()
             ->teachingCourses()
+            ->where('status', 'active')
+            ->with('shelfBooks')
             ->withCount('shelfBooks')
             ->get();
 
@@ -28,8 +30,8 @@ class CourseShelfController extends Controller
 
         abort_if(!Auth::user()->teachingCourses()->where('id', $course->id)->exists(), 403);
 
-        $course->load('shelfBooks'); 
-        $allBooks = Book::orderBy('title')->get(); 
+        $course->load('shelfBooks');
+        $allBooks = Book::orderBy('title')->get();
 
         return Inertia::render('faculty/courses/show', [
             'course' => $course,

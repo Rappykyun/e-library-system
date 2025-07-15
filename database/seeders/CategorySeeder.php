@@ -46,11 +46,13 @@ class CategorySeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            Category::create([
-                'name' => $category['name'],
-                'slug' => Str::slug($category['name']),
-                'description' => $category['description'],
-            ]);
+            Category::updateOrCreate(
+                ['name' => $category['name']], // Field to check for existence
+                [
+                    'slug' => Str::slug($category['name']),
+                    'description' => $category['description'],
+                ]
+            );
         }
     }
 }

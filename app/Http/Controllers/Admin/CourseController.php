@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Program;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -15,13 +16,28 @@ class CourseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->only(['program', 'status']);
+
+        $courses = Course::with(['program', 'faculty', 'students', 'shelfBooks'])
+            ->withCount(['faculty', 'students', 'shelfBooks'])
+            ->when($request->input('program'), function ($query, $programId) {
+                $query->where('program_id', $programId);
+            })
+            ->when($request->input('status', 'active'), function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('admin/courses/index', [
-            'courses' => Course::with(['program', 'faculty', 'students'])->withCount('shelfBooks')->latest()->paginate(10),
+            'courses' => $courses,
             'programs' => Program::orderBy('name')->get(),
             'faculty' => User::role('faculty')->orderBy('name')->get(),
             'students' => User::role('student')->orderBy('name')->get(),
+            'filters' => $filters,
         ]);
     }
 
@@ -76,6 +92,7 @@ class CourseController extends Controller
             'code' => 'required|string|max:255|unique:courses,code,' . $course->id,
             'program_id' => 'required|exists:programs,id',
             'description' => 'nullable|string',
+            'status' => 'required|in:active,archived',
             'faculty_ids' => 'nullable|array',
             'faculty_ids.*' => 'exists:users,id',
             'student_ids' => 'nullable|array',
@@ -87,6 +104,7 @@ class CourseController extends Controller
             'code' => $validated['code'],
             'program_id' => $validated['program_id'],
             'description' => $validated['description'],
+            'status' => $validated['status'],
         ]);
 
         if ($request->has('faculty_ids')) {

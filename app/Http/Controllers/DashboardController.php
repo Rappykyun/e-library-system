@@ -52,6 +52,22 @@ class DashboardController extends Controller
                 ->orderBy('month')
                 ->get();
 
+            $outdatedThreshold = 5; // Years
+            $currentYear = Carbon::now()->year;
+
+            $outdatedCourses = DB::table('courses')
+                ->select('courses.id', 'courses.name')
+                ->where('courses.status', 'active')
+                ->whereIn('courses.id', function ($query) {
+                    $query->select('course_id')->from('course_book');
+                })
+                ->whereRaw(
+                    '(SELECT MAX(CAST(b.published_year AS UNSIGNED)) FROM books b JOIN course_book cb ON b.id = cb.book_id WHERE cb.course_id = courses.id) < ?',
+                    [$currentYear - $outdatedThreshold]
+                )
+                ->orderBy('name')
+                ->get();
+
             // Category distribution
             $booksByCategory = Category::withCount('books')
                 ->having('books_count', '>', 0)
@@ -104,6 +120,7 @@ class DashboardController extends Controller
                     'booksByCategory' => $booksByCategory,
                     'usersByMonth' => $usersByMonth,
                     'recentUsers' => $recentUsers,
+                    'outdatedCourses' => $outdatedCourses,
                     // 'topRatedBooks' => $topRatedBooks,
                 ],
             ]);

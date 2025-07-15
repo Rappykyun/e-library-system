@@ -1,8 +1,9 @@
+import { Badge } from '@/components/ui/badge';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Course } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { BookMarked } from 'lucide-react';
+import { AlertTriangle, BookMarked } from 'lucide-react';
 
 interface FacultyCoursesIndexProps extends PageProps {
     courses: Course[];
@@ -30,9 +31,17 @@ export default function FacultyCoursesIndex({ courses }: FacultyCoursesIndexProp
                                                     <CardDescription>{course.code}</CardDescription>
                                                 </CardHeader>
                                                 <div className="flex-grow" />
-                                                <div className="flex items-center justify-end p-4 text-sm text-muted-foreground">
-                                                    <BookMarked className="mr-2 h-4 w-4" />
-                                                    <span>{course.shelf_books_count} books on shelf</span>
+                                                <div className="flex items-center justify-between p-4 text-sm">
+                                                    <div className="flex items-center text-muted-foreground">
+                                                        <BookMarked className="mr-2 h-4 w-4" />
+                                                        <span>{course.shelf_books_count} books on shelf</span>
+                                                    </div>
+                                                    {course.outdated_books_count > 0 && (
+                                                        <Badge variant="destructive" className="flex items-center">
+                                                            <AlertTriangle className="mr-1 h-4 w-4" />
+                                                            <span>{course.outdated_books_count} outdated</span>
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </Card>
                                         </Link>

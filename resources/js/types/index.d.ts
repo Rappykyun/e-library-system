@@ -69,13 +69,17 @@ export interface Course {
     name: string;
     code: string;
     description: string | null;
+    status: 'active' | 'archived';
     program_id: number;
     program: Program;
     books_count?: number;
     faculty?: User[];
     students?: User[];
+    faculty_count?: number;
+    students_count?: number;
     shelf_books?: Book[];
     shelf_books_count?: number;
+    outdated_books_count?: number;
 }
 
 export interface Book {

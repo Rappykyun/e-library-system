@@ -1,3 +1,5 @@
+import { OutdatedCoursesWarning } from '@/components/outdated-courses-warning';
+import StatCard from '@/components/stat-card';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -6,7 +8,6 @@ import { Book, Category, User } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Activity, BarChart3, BookCopy, Calendar, Download, Eye, GraduationCap, Library, TrendingUp, Users } from 'lucide-react';
 import { Area, AreaChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
-import StatCard from '@/components/stat-card';
 
 interface PopularBook extends Pick<Book, 'id' | 'title' | 'author' | 'download_count'> {
     category?: Pick<Category, 'name'>;
@@ -18,6 +19,11 @@ interface RecentBook extends Pick<Book, 'id' | 'title' | 'author' | 'created_at'
 
 interface RecentUser extends Pick<User, 'id' | 'name' | 'email' | 'created_at'> {
     role: string;
+}
+
+interface OutdatedCourse {
+    id: number;
+    name: string;
 }
 
 interface AdminDashboardProps {
@@ -35,6 +41,7 @@ interface AdminDashboardProps {
         booksByCategory: { name: string; books_count: number }[];
         usersByMonth: { month: string; month_name: string; total: number }[];
         recentUsers: RecentUser[];
+        outdatedCourses: OutdatedCourse[];
     };
 }
 
@@ -100,6 +107,8 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                         <span>Last updated: {new Date().toLocaleTimeString()}</span>
                     </div>
                 </div>
+
+                <OutdatedCoursesWarning courses={stats.outdatedCourses} />
 
                 {/* Stats Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
