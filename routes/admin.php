@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\BookController;
 use App\Http\Controllers\Admin\ProgramController;
 use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 // 📚 LIBRARIAN + ADMIN ROUTES - Book and Category Management
@@ -28,4 +29,5 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::resource('/users', UserController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::resource('programs', ProgramController::class);
         Route::resource('courses', CourseController::class);
+        Route::resource('activity-logs', ActivityLogController::class)->only('index');
     });

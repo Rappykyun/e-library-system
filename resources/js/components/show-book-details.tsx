@@ -25,13 +25,12 @@ export function ShowBookDetails({ book, categories, showAdminActions }: ShowBook
 
     const handleDownload = () => {
         const downloadUrl = route('books.download', book.id);
-        window.location.href = downloadUrl;
+        window.open(downloadUrl, '_blank');
     };
 
     const handlePreview = () => {
-        if (book.ebook_url) {
-            window.open(book.ebook_url, '_blank');
-        }
+        const previewUrl = route('books.preview', book.id);
+        window.open(previewUrl, '_blank');
     };
 
     const handleShare = () => {

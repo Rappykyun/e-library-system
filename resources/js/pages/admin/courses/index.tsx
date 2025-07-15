@@ -46,6 +46,7 @@ export default function CoursesIndex({  courses, programs, faculty, students }: 
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead>Id</TableHead>
                                         <TableHead>Code</TableHead>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Description</TableHead>
@@ -58,6 +59,7 @@ export default function CoursesIndex({  courses, programs, faculty, students }: 
                                     {courses.data.length > 0 ? (
                                         courses.data.map((course) => (
                                             <TableRow key={course.id}>
+                                                <TableCell className="font-mono">{course.id}</TableCell>
                                                 <TableCell className="font-mono">{course.code}</TableCell>
                                                 <TableCell className="font-medium">{course.name}</TableCell>
                                                 <TableCell className="align-top">

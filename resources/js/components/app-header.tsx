@@ -11,7 +11,7 @@ import { usePermission } from '@/hooks/use-permission';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookCopy, BookMarked, BookUser, Bookmark, GraduationCap, LayoutGrid, Library, Menu, Settings, Users } from 'lucide-react';
+import { BookCopy, BookMarked, BookUser, Bookmark, FileClock, GraduationCap, LayoutGrid, Library, Menu, Settings, Users } from 'lucide-react';
 import AppLogoIcon from './app-logo-icon';
 
 // 👑 Admin Navigation - Full System Control
@@ -50,6 +50,12 @@ const adminNavItems: NavItem[] = [
         title: 'Users',
         href: '/admin/users',
         icon: Users,
+        permission: 'view users',
+    },
+    {
+        title: 'Activity Logs',
+        href: '/admin/activity-logs',
+        icon: FileClock,
         permission: 'view users',
     },
 ];

@@ -3,11 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useState } from 'react';
 import { toast } from 'sonner';
 
 export function AddUserForm({ onClose }: { onClose: () => void }) {
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -60,15 +62,25 @@ export function AddUserForm({ onClose }: { onClose: () => void }) {
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
+                    <div className="flex items-center space-x-2">
+                        <Switch id="toggle-password" checked={showPassword} onCheckedChange={setShowPassword} />
+                        <Label htmlFor="toggle-password">Show Password</Label>
+                    </div>
                 </div>
-                <Input id="password" type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} required />
+                <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={data.password}
+                    onChange={(e) => setData('password', e.target.value)}
+                    required
+                />
                 <InputError message={errors.password} className="mt-2" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="password_confirmation">Confirm Password</Label>
                 <Input
                     id="password_confirmation"
-                    type=""
+                    type={showPassword ? 'text' : 'password'}
                     value={data.password_confirmation}
                     onChange={(e) => setData('password_confirmation', e.target.value)}
                     required

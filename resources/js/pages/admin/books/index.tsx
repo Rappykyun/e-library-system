@@ -17,12 +17,12 @@ interface BooksIndexProps {
 
 export default function BooksIndex({ books, categories, courses }: BooksIndexProps) {
     const handleBookAdded = () => {
-        // Refresh the current page to show the new book
+  //refresh the current page
         router.reload({ only: ['books'] });
     };
 
     const handleBookUpdated = () => {
-        // Refresh the current page to show the updated book
+        // Refresh the current page 
         router.reload({ only: ['books'] });
     };
 

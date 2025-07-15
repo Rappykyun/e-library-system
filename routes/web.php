@@ -12,6 +12,7 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('books/{book}/download', [BookController::class, 'download'])->name('books.download');
+    Route::get('books/{book}/preview', [BookController::class, 'preview'])->name('books.preview');
 });
 
 require __DIR__ . '/admin.php';

@@ -72,10 +72,10 @@ export interface Course {
     program_id: number;
     program: Program;
     books_count?: number;
-    faculty?: User[]; 
-    students?: User[]; 
-    shelf_books?: Book[]; 
-    shelf_books_count?: number; 
+    faculty?: User[];
+    students?: User[];
+    shelf_books?: Book[];
+    shelf_books_count?: number;
 }
 
 export interface Book {
@@ -101,7 +101,6 @@ export interface Book {
     created_at: string;
     updated_at: string;
     bookmarks?: Bookmark[];
-
 }
 
 export interface Bookmark {
@@ -184,4 +183,12 @@ export interface PaginatedResponse<T> {
 export interface SelectOption {
     value: string;
     label: string;
+}
+
+export interface DownloadLog extends AppModel {
+    id: number;
+    user: User;
+    book: Book;
+    activity_type: 'download' | 'preview';
+    created_at: string;
 }
