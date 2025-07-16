@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { type Category, type Course } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, FileText, Loader2, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, FileText, Image, Loader2, Upload, X } from 'lucide-react';
 import { DragEvent, FormEventHandler, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface AddBookFormProps {
     categories: Category[];
@@ -23,11 +24,12 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
     const [isDragOver, setIsDragOver] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle');
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         title: '',
-        
         author: '',
         publisher: '',
         isbn: '',
@@ -38,6 +40,7 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
         course_id: '',
         description: '',
         ebook: null as File | null,
+        thumbnail: null as File | null,
     });
 
     const handleSubmit: FormEventHandler = (e) => {
@@ -84,6 +87,7 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                         setOpen(false);
                         setUploadProgress(0);
                         setUploadStatus('idle');
+                        setThumbnailPreview(null);
                     }, 1500);
                 }, 500);
             },
@@ -123,9 +127,32 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
         }
     };
 
+    const handleThumbnailSelect = (file: File) => {
+        if (file && file.type.startsWith('image/')) {
+            if (file.size <= 2 * 1024 * 1024) {
+                // 2MB limit for images
+                setData('thumbnail', file);
+                clearErrors('thumbnail');
+
+                // Create preview URL
+                const previewUrl = URL.createObjectURL(file);
+                setThumbnailPreview(previewUrl);
+            } else {
+                toast.error('Thumbnail size must be less than 2MB');
+            }
+        } else {
+            toast.error('Only image files are allowed for thumbnails');
+        }
+    };
+
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) handleFileSelect(file);
+    };
+
+    const handleThumbnailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) handleThumbnailSelect(file);
     };
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -150,6 +177,17 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
         setData('ebook', null);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
+        }
+    };
+
+    const removeThumbnail = () => {
+        setData('thumbnail', null);
+        if (thumbnailInputRef.current) {
+            thumbnailInputRef.current.value = '';
+        }
+        if (thumbnailPreview) {
+            URL.revokeObjectURL(thumbnailPreview);
+            setThumbnailPreview(null);
         }
     };
 
@@ -205,7 +243,6 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                         }}
                                         className={errors.title ? 'border-red-500' : ''}
                                         placeholder="Enter book title"
-                                        required
                                     />
                                     {errors.title && (
                                         <p className="flex items-center gap-1 text-sm text-red-600">
@@ -229,7 +266,6 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                         }}
                                         className={errors.author ? 'border-red-500' : ''}
                                         placeholder="Enter author name"
-                                        required
                                     />
                                     {errors.author && (
                                         <p className="flex items-center gap-1 text-sm text-red-600">
@@ -245,14 +281,14 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                         Category <span className="text-red-500">*</span>
                                     </Label>
                                     <Select
+                                        value={data.category_id}
                                         onValueChange={(value) => {
                                             setData('category_id', value);
                                             clearUploadError();
                                         }}
-                                        value={data.category_id}
                                     >
                                         <SelectTrigger className={errors.category_id ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Select category" />
+                                            <SelectValue placeholder="Select a category" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {categories.map((category) => (
@@ -274,21 +310,20 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                 <div className="space-y-2">
                                     <Label htmlFor="course">Course (Optional)</Label>
                                     <Select
+                                        value={data.course_id || 'none'}
                                         onValueChange={(value) => {
-                                            // Handle the "None" case
                                             setData('course_id', value === 'none' ? '' : value);
                                             clearUploadError();
                                         }}
-                                        value={data.course_id || 'none'}
                                     >
                                         <SelectTrigger className={errors.course_id ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Assign to a course" />
+                                            <SelectValue placeholder="Select a course (optional)" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none">None</SelectItem>
                                             {courses.map((course) => (
                                                 <SelectItem key={course.id} value={course.id.toString()}>
-                                                    {course.program.name} - {course.name} ({course.code})
+                                                    {course.name} ({course.program?.name})
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -420,19 +455,26 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                 <div className="space-y-2">
                                     <Label htmlFor="language">Language</Label>
                                     <Select
+                                        value={data.language}
                                         onValueChange={(value) => {
                                             setData('language', value);
                                             clearUploadError();
                                         }}
-                                        value={data.language}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className={errors.language ? 'border-red-500' : ''}>
                                             <SelectValue placeholder="Select language" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="en">English</SelectItem>
-                                            <SelectItem value="fil">Filipino</SelectItem>
-                                           
+                                            <SelectItem value="es">Spanish</SelectItem>
+                                            <SelectItem value="fr">French</SelectItem>
+                                            <SelectItem value="de">German</SelectItem>
+                                            <SelectItem value="it">Italian</SelectItem>
+                                            <SelectItem value="pt">Portuguese</SelectItem>
+                                            <SelectItem value="zh">Chinese</SelectItem>
+                                            <SelectItem value="ja">Japanese</SelectItem>
+                                            <SelectItem value="ko">Korean</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.language && (
@@ -443,73 +485,129 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                     )}
                                 </div>
 
-                                {/* File Upload */}
+                                {/* Thumbnail Upload */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="ebook">
-                                        Ebook File <span className="text-red-500">*</span>
-                                    </Label>
-                                    <div
-                                        className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-                                            isDragOver ? 'border-blue-500 bg-blue-50' : errors.ebook ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                                        }`}
-                                        onDragOver={handleDragOver}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={handleDrop}
-                                    >
-                                        {data.ebook ? (
+                                    <Label htmlFor="thumbnail">Book Cover/Thumbnail (Optional)</Label>
+                                    <div className="rounded-lg border-2 border-dashed border-gray-300 p-4">
+                                        {thumbnailPreview ? (
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <FileText className="h-8 w-8 text-blue-500" />
+                                                <div className="flex items-center justify-center">
+                                                    <img
+                                                        src={thumbnailPreview}
+                                                        alt="Thumbnail preview"
+                                                        className="max-h-32 max-w-32 rounded-lg object-cover"
+                                                    />
                                                 </div>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <Badge variant="secondary">{data.ebook.name}</Badge>
-                                                    <Badge variant="outline">{formatFileSize(data.ebook.size)}</Badge>
-                                                    <Button type="button" variant="ghost" size="sm" onClick={removeFile}>
+                                                    <Badge variant="secondary">{data.thumbnail?.name}</Badge>
+                                                    <Badge variant="outline">{data.thumbnail ? formatFileSize(data.thumbnail.size) : ''}</Badge>
+                                                    <Button type="button" variant="ghost" size="sm" onClick={removeThumbnail}>
                                                         <X className="h-3 w-3" />
                                                     </Button>
                                                 </div>
-                                                <div className="flex items-center justify-center text-sm text-green-600">
-                                                    <CheckCircle className="mr-1 h-4 w-4" />
-                                                    File selected and ready to upload
-                                                </div>
                                             </div>
                                         ) : (
-                                            <div className="space-y-2">
-                                                <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                                            <div className="space-y-2 text-center">
+                                                <Image className="mx-auto h-6 w-6 text-gray-400" />
                                                 <div className="text-sm text-gray-600">
-                                                    <p>Drag and drop your ebook file here, or</p>
                                                     <Button
                                                         type="button"
                                                         variant="outline"
                                                         size="sm"
-                                                        className="mt-2"
-                                                        onClick={() => fileInputRef.current?.click()}
+                                                        onClick={() => thumbnailInputRef.current?.click()}
                                                     >
-                                                        Browse Files
+                                                        Choose Thumbnail
                                                     </Button>
                                                 </div>
                                                 <p className="text-xs text-gray-500">
-                                                    Supported: PDF, EPUB <span className="font-bold">(Max: 30MB)</span>
+                                                    JPG, PNG, WebP <span className="font-bold">(Max: 2MB)</span>
                                                 </p>
                                             </div>
                                         )}
                                     </div>
                                     <input
-                                        ref={fileInputRef}
+                                        ref={thumbnailInputRef}
                                         type="file"
-                                        accept=".pdf,.epub"
-                                        onChange={handleFileInputChange}
+                                        accept="image/*"
+                                        onChange={handleThumbnailInputChange}
                                         className="hidden"
-                                        aria-label="Upload ebook file"
+                                        aria-label="Upload thumbnail"
                                     />
-                                    {errors.ebook && (
+                                    {errors.thumbnail && (
                                         <p className="flex items-center gap-1 text-sm text-red-600">
                                             <AlertCircle className="h-3 w-3" />
-                                            {errors.ebook}
+                                            {errors.thumbnail}
                                         </p>
                                     )}
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Full Width File Upload */}
+                        <div className="space-y-2">
+                            <Label htmlFor="ebook">
+                                Upload E-book <span className="text-red-500">*</span>
+                            </Label>
+                            <div
+                                className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+                                    isDragOver ? 'border-blue-500 bg-blue-50' : errors.ebook ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                }`}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
+                                {data.ebook ? (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <FileText className="h-8 w-8 text-blue-500" />
+                                        </div>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Badge variant="secondary">{data.ebook.name}</Badge>
+                                            <Badge variant="outline">{formatFileSize(data.ebook.size)}</Badge>
+                                            <Button type="button" variant="ghost" size="sm" onClick={removeFile}>
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                        <div className="flex items-center justify-center text-sm text-green-600">
+                                            <CheckCircle className="mr-1 h-4 w-4" />
+                                            File selected and ready to upload
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                                        <div className="text-sm text-gray-600">
+                                            <p>Drag and drop your ebook file here, or</p>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="mt-2"
+                                                onClick={() => fileInputRef.current?.click()}
+                                            >
+                                                Browse Files
+                                            </Button>
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                            Supported: PDF, EPUB <span className="font-bold">(Max: 30MB)</span>
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".pdf,.epub"
+                                onChange={handleFileInputChange}
+                                className="hidden"
+                                aria-label="Upload ebook file"
+                            />
+                            {errors.ebook && (
+                                <p className="flex items-center gap-1 text-sm text-red-600">
+                                    <AlertCircle className="h-3 w-3" />
+                                    {errors.ebook}
+                                </p>
+                            )}
                         </div>
                     </form>
                 </div>

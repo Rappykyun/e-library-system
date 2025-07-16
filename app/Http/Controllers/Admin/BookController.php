@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Category;
-use App\Services\AzureBlobService;
+// use App\Services\AzureBlobService; // Commented out for local storage
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Smalot\PdfParser\Parser;
@@ -20,12 +21,13 @@ use App\Models\Course;
 
 class BookController extends Controller
 {
-    protected $azureBlobService;
+    // Comment out Azure service for now - can be uncommented later with budget
+    // protected $azureBlobService;
 
-    public function __construct(AzureBlobService $azureBlobService)
-    {
-        $this->azureBlobService = $azureBlobService;
-    }
+    // public function __construct(AzureBlobService $azureBlobService)
+    // {
+    //     $this->azureBlobService = $azureBlobService;
+    // }
 
     /**
      * Display a listing of the resource.
@@ -78,7 +80,50 @@ class BookController extends Controller
             'isbn' => 'nullable|string|max:20|unique:books',
             'language' => 'nullable|string|max:10',
             'ebook' => 'required|file|mimes:pdf,epub|max:30720',
+            'thumbnail' => 'nullable|file|mimes:jpeg,jpg,png,webp|max:2048', // Manual thumbnail upload
         ]);
+
+        $file = $request->file('ebook');
+        $thumbnailFile = $request->file('thumbnail');
+
+        // Generate unique identifiers
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        $sanitizedName = Str::slug($originalName);
+        $uniqueId = uniqid();
+        $timestamp = now()->format('Y/m');
+
+        // Store PDF in local storage
+        $pdfFileName = $uniqueId . '_' . $sanitizedName . '.' . $extension;
+        $pdfPath = $file->storeAs('books/pdfs/' . $timestamp, $pdfFileName, 'public');
+        $pdfUrl = Storage::url($pdfPath);
+
+        // Handle thumbnail upload
+        $thumbnailUrl = null;
+        $thumbnailPath = null;
+
+        if ($thumbnailFile) {
+            $thumbnailFileName = $uniqueId . '_' . $sanitizedName . '_thumb.' . $thumbnailFile->getClientOriginalExtension();
+            $thumbnailPath = $thumbnailFile->storeAs('books/thumbnails/' . $timestamp, $thumbnailFileName, 'public');
+            $thumbnailUrl = Storage::url($thumbnailPath);
+        }
+
+        // Save book to database
+        $bookData = array_merge($validated, [
+            'ebook_url' => $pdfUrl,
+            'ebook_public_id' => $pdfPath, // Store local path instead of Azure blob name
+            'cover_image_url' => $thumbnailUrl,
+            'thumbnail_public_id' => $thumbnailPath, // Store local path instead of Azure blob name
+        ]);
+
+        // Remove thumbnail from bookData as it's not a database field
+        unset($bookData['thumbnail']);
+
+        $book = Book::create($bookData);
+
+        return Redirect::route('admin.books.index')->with('success', 'Book Successfully Created');
+
+        /* COMMENTED OUT: Azure Storage Implementation (for future use with budget)
 
         $file = $request->file('ebook');
 
@@ -129,11 +174,16 @@ class BookController extends Controller
         $book = Book::create($bookData);
 
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Created');
+
+        */
     }
+
+    /* COMMENTED OUT: PDF Thumbnail Generation with pdftoppm (for future use)
 
     /**
      * Generate thumbnail URL using the same format as working thumbnails
      */
+    /*
     private function generatePdfThumbnail(UploadedFile $pdfFile, string $thumbnailBlobName): array
     {
         // Create temporary file paths with proper Windows separators
@@ -258,6 +308,7 @@ class BookController extends Controller
             throw $e;
         }
     }
+    */
 
     /**
      * Display the specified resource.
@@ -294,7 +345,78 @@ class BookController extends Controller
      */
     public function update(Request $request, Book $book)
     {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'course_id' => 'nullable|exists:courses,id',
+            'description' => 'nullable|string',
+            'publisher' => 'nullable|string|max:255',
+            'published_year' => 'nullable|digits:4',
+            'pages' => 'nullable|integer|min:1|max:10000',
+            'isbn' => 'nullable|string|max:20|unique:books,isbn,' . $book->id,
+            'language' => 'nullable|string|max:10',
+            'ebook' => 'nullable|file|mimes:pdf,epub|max:30720',
+            'thumbnail' => 'nullable|file|mimes:jpeg,jpg,png,webp|max:2048', // Manual thumbnail upload
+        ]);
 
+        $bookData = $validated;
+
+        // Remove thumbnail from bookData as it's not a database field
+        unset($bookData['thumbnail']);
+
+        if ($request->hasFile('ebook')) {
+            // Delete old PDF file from local storage
+            if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
+                Storage::disk('public')->delete($book->ebook_public_id);
+            }
+
+            $file = $request->file('ebook');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
+            $sanitizedName = Str::slug($originalName);
+            $uniqueId = uniqid();
+            $timestamp = now()->format('Y/m');
+
+            // Store new PDF
+            $pdfFileName = $uniqueId . '_' . $sanitizedName . '.' . $extension;
+            $pdfPath = $file->storeAs('books/pdfs/' . $timestamp, $pdfFileName, 'public');
+            $pdfUrl = Storage::url($pdfPath);
+
+            $bookData = array_merge($bookData, [
+                'ebook_url' => $pdfUrl,
+                'ebook_public_id' => $pdfPath,
+            ]);
+        }
+
+        if ($request->hasFile('thumbnail')) {
+            // Delete old thumbnail file from local storage
+            if ($book->thumbnail_public_id && Storage::disk('public')->exists($book->thumbnail_public_id)) {
+                Storage::disk('public')->delete($book->thumbnail_public_id);
+            }
+
+            $thumbnailFile = $request->file('thumbnail');
+            $originalName = pathinfo($book->ebook_public_id ?? $book->title, PATHINFO_FILENAME);
+            $sanitizedName = Str::slug($originalName);
+            $uniqueId = uniqid();
+            $timestamp = now()->format('Y/m');
+
+            // Store new thumbnail
+            $thumbnailFileName = $uniqueId . '_' . $sanitizedName . '_thumb.' . $thumbnailFile->getClientOriginalExtension();
+            $thumbnailPath = $thumbnailFile->storeAs('books/thumbnails/' . $timestamp, $thumbnailFileName, 'public');
+            $thumbnailUrl = Storage::url($thumbnailPath);
+
+            $bookData = array_merge($bookData, [
+                'cover_image_url' => $thumbnailUrl,
+                'thumbnail_public_id' => $thumbnailPath,
+            ]);
+        }
+
+        $book->update($bookData);
+
+        return Redirect::route('admin.books.index')->with('success', 'Book Successfully Updated');
+
+        /* COMMENTED OUT: Azure Storage Update Implementation (for future use with budget)
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -367,6 +489,8 @@ class BookController extends Controller
         $book->update($bookData);
 
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Updated');
+
+        */
     }
 
     /**
@@ -374,6 +498,20 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
+        // Delete PDF and thumbnail from local storage
+        if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
+            Storage::disk('public')->delete($book->ebook_public_id);
+        }
+        if ($book->thumbnail_public_id && Storage::disk('public')->exists($book->thumbnail_public_id)) {
+            Storage::disk('public')->delete($book->thumbnail_public_id);
+        }
+
+        $book->delete();
+
+        return Redirect::route('admin.books.index')->with('success', 'Book Successfully Deleted');
+
+        /* COMMENTED OUT: Azure Storage Delete Implementation (for future use with budget)
+
         // Delete both PDF and thumbnail from Azure
         if ($book->ebook_public_id) {
             $this->azureBlobService->deleteFile($book->ebook_public_id);
@@ -385,6 +523,8 @@ class BookController extends Controller
         $book->delete();
 
         return Redirect::route('admin.books.index')->with('success', 'Book Successfully Deleted');
+
+        */
     }
 
     public function download(Book $book)
@@ -395,11 +535,23 @@ class BookController extends Controller
             return back()->with('error', 'No downloadable file found for this book.');
         }
 
+        // For local storage
+        if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
+            $fileName = Str::slug($book->title) . '.pdf';
+            return Storage::disk('public')->download($book->ebook_public_id, $fileName);
+        }
+
+        return back()->with('error', 'File not found.');
+
+        /* COMMENTED OUT: Azure Storage Download Implementation (for future use with budget)
+
         // Create a file name for the download.
         $fileName = Str::slug($book->title) . '.pdf';
 
         return response()->streamDownload(function () use ($book) {
             echo file_get_contents($book->ebook_url);
         }, $fileName);
+
+        */
     }
 }

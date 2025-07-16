@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { type Book, type Category, type Course } from '@/types';
 import { useForm } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Edit, FileText, Loader2, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit, FileText, Image, Loader2, Upload, X } from 'lucide-react';
 import { DragEvent, FormEventHandler, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { route } from 'ziggy-js';
 
 interface EditBookFormProps {
     book: Book;
@@ -24,7 +25,9 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
     const [isDragOver, setIsDragOver] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'success' | 'error'>('idle');
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(book.cover_image_url || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
     const { data, setData, post, processing, errors, clearErrors } = useForm({
         title: book.title || '',
@@ -38,13 +41,14 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
         course_id: book.course?.id?.toString() || '',
         description: book.description || '',
         ebook: null as File | null,
-        _method: 'PATCH' as const, 
+        thumbnail: null as File | null,
+        _method: 'PATCH' as const,
     });
 
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // Clear previous errors and set initial progress
+        
         clearErrors();
         setUploadProgress(0);
         setUploadStatus('uploading');
@@ -53,7 +57,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
         post(route('admin.books.update', book.id), {
             forceFormData: true, 
             onProgress: (progress) => {
-                // Convert progress to percentage and reserve 10% for processing
+                
                 const percent = Math.round((progress?.percentage ?? 0) * 0.9);
                 setUploadProgress(percent);
             },
@@ -61,7 +65,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                 setUploadProgress(95);
                 setUploadStatus('processing');
 
-
+                // Small delay to show processing state
                 setTimeout(() => {
                     setUploadProgress(100);
                     setUploadStatus('success');
@@ -69,16 +73,18 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                     // Show success toast
                     toast.success('Book updated successfully!');
 
-    
+                    // Call the callback if provided
                     if (onBookUpdated) {
                         onBookUpdated();
                     }
 
-
+                    // Reset form and close dialog after showing success
                     setTimeout(() => {
                         setOpen(false);
                         setUploadProgress(0);
                         setUploadStatus('idle');
+                        
+                        setThumbnailPreview(book.cover_image_url || null);
                     }, 1500);
                 }, 500);
             },
@@ -89,7 +95,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                 setUploadStatus('error');
                 setUploadProgress(0);
 
-                // Show toast notification for validation errors
+
                 const errorCount = Object.keys(errors).length;
                 if (errorCount === 1) {
                     toast.error('Please fix the validation error below and try again.');
@@ -98,7 +104,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                 }
             },
             onFinish: () => {
-
+                
             },
         });
     };
@@ -117,9 +123,32 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
         }
     };
 
+    const handleThumbnailSelect = (file: File) => {
+        if (file && file.type.startsWith('image/')) {
+            if (file.size <= 2 * 1024 * 1024) {
+                // 2MB limit for images
+                setData('thumbnail', file);
+                clearErrors('thumbnail');
+
+                // Create preview URL
+                const previewUrl = URL.createObjectURL(file);
+                setThumbnailPreview(previewUrl);
+            } else {
+                toast.error('Thumbnail size must be less than 2MB');
+            }
+        } else {
+            toast.error('Only image files are allowed for thumbnails');
+        }
+    };
+
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) handleFileSelect(file);
+    };
+
+    const handleThumbnailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) handleThumbnailSelect(file);
     };
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -147,6 +176,17 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
         }
     };
 
+    const removeThumbnail = () => {
+        setData('thumbnail', null);
+        if (thumbnailInputRef.current) {
+            thumbnailInputRef.current.value = '';
+        }
+        if (thumbnailPreview && thumbnailPreview !== book.cover_image_url) {
+            URL.revokeObjectURL(thumbnailPreview);
+        }
+        setThumbnailPreview(null);
+    };
+
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
@@ -168,9 +208,8 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="cursor-pointer hover:bg-gray-300">
-                    <Edit className="h-4 w-4" />
-                    
+                <Button variant="ghost" size="sm" className="hover:bg-gray-300">
+                    <Edit className=" h-4 w-4 " />
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
@@ -199,7 +238,6 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                                         }}
                                         className={errors.title ? 'border-red-500' : ''}
                                         placeholder="Enter book title"
-                                        required
                                     />
                                     {errors.title && (
                                         <p className="flex items-center gap-1 text-sm text-red-600">
@@ -223,7 +261,6 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                                         }}
                                         className={errors.author ? 'border-red-500' : ''}
                                         placeholder="Enter author name"
-                                        required
                                     />
                                     {errors.author && (
                                         <p className="flex items-center gap-1 text-sm text-red-600">
@@ -239,14 +276,14 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                                         Category <span className="text-red-500">*</span>
                                     </Label>
                                     <Select
+                                        value={data.category_id}
                                         onValueChange={(value) => {
                                             setData('category_id', value);
                                             clearUploadError();
                                         }}
-                                        value={data.category_id}
                                     >
                                         <SelectTrigger className={errors.category_id ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Select category" />
+                                            <SelectValue placeholder="Select a category" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {categories.map((category) => (
@@ -268,21 +305,20 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                                 <div className="space-y-2">
                                     <Label htmlFor="course">Course (Optional)</Label>
                                     <Select
+                                        value={data.course_id || 'none'}
                                         onValueChange={(value) => {
-                                            // Handle the "None" case
                                             setData('course_id', value === 'none' ? '' : value);
                                             clearUploadError();
                                         }}
-                                        value={data.course_id || 'none'}
                                     >
                                         <SelectTrigger className={errors.course_id ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder="Assign to a course" />
+                                            <SelectValue placeholder="Select a course (optional)" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none">None</SelectItem>
                                             {courses.map((course) => (
                                                 <SelectItem key={course.id} value={course.id.toString()}>
-                                                    {course.program.name} - {course.name} ({course.code})
+                                                    {course.name} ({course.program?.name})
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -414,18 +450,26 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                                 <div className="space-y-2">
                                     <Label htmlFor="language">Language</Label>
                                     <Select
+                                        value={data.language}
                                         onValueChange={(value) => {
                                             setData('language', value);
                                             clearUploadError();
                                         }}
-                                        value={data.language}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger className={errors.language ? 'border-red-500' : ''}>
                                             <SelectValue placeholder="Select language" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="en">English</SelectItem>
-                                            <SelectItem value="fil">Filipino</SelectItem>
+                                            <SelectItem value="es">Spanish</SelectItem>
+                                            <SelectItem value="fr">French</SelectItem>
+                                            <SelectItem value="de">German</SelectItem>
+                                            <SelectItem value="it">Italian</SelectItem>
+                                            <SelectItem value="pt">Portuguese</SelectItem>
+                                            <SelectItem value="zh">Chinese</SelectItem>
+                                            <SelectItem value="ja">Japanese</SelectItem>
+                                            <SelectItem value="ko">Korean</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.language && (
@@ -436,71 +480,134 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                                     )}
                                 </div>
 
-                                {/* File Upload */}
+                                {/* Thumbnail Upload */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="ebook">Replace Ebook File (Optional)</Label>
-                                    <div
-                                        className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-                                            isDragOver ? 'border-blue-500 bg-blue-50' : errors.ebook ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                                        }`}
-                                        onDragOver={handleDragOver}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={handleDrop}
-                                    >
-                                        {data.ebook ? (
+                                    <Label htmlFor="thumbnail">Book Cover/Thumbnail</Label>
+                                    <div className="rounded-lg border-2 border-dashed border-gray-300 p-4">
+                                        {thumbnailPreview ? (
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <FileText className="h-8 w-8 text-blue-500" />
+                                                <div className="flex items-center justify-center">
+                                                    <img
+                                                        src={thumbnailPreview}
+                                                        alt="Thumbnail preview"
+                                                        className="max-h-32 max-w-32 rounded-lg object-cover"
+                                                    />
                                                 </div>
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <Badge variant="secondary">{data.ebook.name}</Badge>
-                                                    <Badge variant="outline">{formatFileSize(data.ebook.size)}</Badge>
-                                                    <Button type="button" variant="ghost" size="sm" onClick={removeFile}>
+                                                    {data.thumbnail ? (
+                                                        <>
+                                                            <Badge variant="secondary">{data.thumbnail.name}</Badge>
+                                                            <Badge variant="outline">{formatFileSize(data.thumbnail.size)}</Badge>
+                                                        </>
+                                                    ) : (
+                                                        <Badge variant="outline">Current thumbnail</Badge>
+                                                    )}
+                                                    <Button type="button" variant="ghost" size="sm" onClick={removeThumbnail}>
                                                         <X className="h-3 w-3" />
                                                     </Button>
                                                 </div>
-                                                <div className="flex items-center justify-center text-sm text-green-600">
-                                                    <CheckCircle className="mr-1 h-4 w-4" />
-                                                    New file selected - will replace current file
-                                                </div>
                                             </div>
                                         ) : (
-                                            <div className="space-y-2">
-                                                <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                                            <div className="space-y-2 text-center">
+                                                <Image className="mx-auto h-6 w-6 text-gray-400" />
                                                 <div className="text-sm text-gray-600">
-                                                    <p>Drag and drop a new ebook file here, or</p>
                                                     <Button
                                                         type="button"
                                                         variant="outline"
                                                         size="sm"
-                                                        className="mt-2"
-                                                        onClick={() => fileInputRef.current?.click()}
+                                                        onClick={() => thumbnailInputRef.current?.click()}
                                                     >
-                                                        Browse Files
+                                                        Choose Thumbnail
                                                     </Button>
                                                 </div>
                                                 <p className="text-xs text-gray-500">
-                                                    Leave empty to keep current file. Supported: PDF, EPUB (Max: 30MB)
+                                                    JPG, PNG, WebP <span className="font-bold">(Max: 2MB)</span>
                                                 </p>
                                             </div>
                                         )}
                                     </div>
                                     <input
-                                        ref={fileInputRef}
+                                        ref={thumbnailInputRef}
                                         type="file"
-                                        accept=".pdf,.epub"
-                                        onChange={handleFileInputChange}
+                                        accept="image/*"
+                                        onChange={handleThumbnailInputChange}
                                         className="hidden"
-                                        aria-label="Upload new ebook file"
+                                        aria-label="Upload thumbnail"
                                     />
-                                    {errors.ebook && (
+                                    {errors.thumbnail && (
                                         <p className="flex items-center gap-1 text-sm text-red-600">
                                             <AlertCircle className="h-3 w-3" />
-                                            {errors.ebook}
+                                            {errors.thumbnail}
                                         </p>
                                     )}
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Optional: Update E-book File */}
+                        <div className="space-y-2">
+                            <Label htmlFor="ebook">Update E-book File (Optional)</Label>
+                            <div
+                                className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+                                    isDragOver ? 'border-blue-500 bg-blue-50' : errors.ebook ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                }`}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
+                                {data.ebook ? (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <FileText className="h-8 w-8 text-blue-500" />
+                                        </div>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <Badge variant="secondary">{data.ebook.name}</Badge>
+                                            <Badge variant="outline">{formatFileSize(data.ebook.size)}</Badge>
+                                            <Button type="button" variant="ghost" size="sm" onClick={removeFile}>
+                                                <X className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                        <div className="flex items-center justify-center text-sm text-green-600">
+                                            <CheckCircle className="mr-1 h-4 w-4" />
+                                            New file selected and ready to upload
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                                        <div className="text-sm text-gray-600">
+                                            <p>Drag and drop a new ebook file here, or</p>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="mt-2"
+                                                onClick={() => fileInputRef.current?.click()}
+                                            >
+                                                Browse Files
+                                            </Button>
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                            Supported: PDF, EPUB <span className="font-bold">(Max: 30MB)</span>
+                                        </p>
+                                        <p className="text-xs text-blue-600">Leave empty to keep the current file</p>
+                                    </div>
+                                )}
+                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".pdf,.epub"
+                                onChange={handleFileInputChange}
+                                className="hidden"
+                                aria-label="Upload ebook file"
+                            />
+                            {errors.ebook && (
+                                <p className="flex items-center gap-1 text-sm text-red-600">
+                                    <AlertCircle className="h-3 w-3" />
+                                    {errors.ebook}
+                                </p>
+                            )}
                         </div>
                     </form>
                 </div>
@@ -537,7 +644,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                             </>
                         ) : (
                             <>
-                                <Edit className="mr-2 h-4 w-4" />
+                                <Upload className="mr-2 h-4 w-4" />
                                 Update Book
                             </>
                         )}

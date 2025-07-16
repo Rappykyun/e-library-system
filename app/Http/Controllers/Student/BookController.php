@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Category;
-use App\Models\DownloadLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -39,7 +38,7 @@ class BookController extends Controller
                 ])
                 ->fastSearch($search, $category)
                 ->orderByDesc('created_at')  // Use indexed field for sorting
-                ->paginate(12)  // Increase page size for better performance
+                ->paginate(12)
                 ->withQueryString();
         });
 
