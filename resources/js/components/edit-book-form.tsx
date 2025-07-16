@@ -38,7 +38,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
         course_id: book.course?.id?.toString() || '',
         description: book.description || '',
         ebook: null as File | null,
-        _method: 'PATCH' as const, // Laravel method override for file uploads
+        _method: 'PATCH' as const, 
     });
 
     const handleSubmit: FormEventHandler = (e) => {
@@ -49,9 +49,9 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
         setUploadProgress(0);
         setUploadStatus('uploading');
 
-        // Use POST with _method for file uploads (PATCH doesn't work properly with multipart data)
+        
         post(route('admin.books.update', book.id), {
-            forceFormData: true, // Force multipart/form-data for file uploads
+            forceFormData: true, 
             onProgress: (progress) => {
                 // Convert progress to percentage and reserve 10% for processing
                 const percent = Math.round((progress?.percentage ?? 0) * 0.9);
@@ -61,7 +61,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                 setUploadProgress(95);
                 setUploadStatus('processing');
 
-                // Small delay to show processing state
+
                 setTimeout(() => {
                     setUploadProgress(100);
                     setUploadStatus('success');
@@ -69,12 +69,12 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                     // Show success toast
                     toast.success('Book updated successfully!');
 
-                    // Call the callback if provided
+    
                     if (onBookUpdated) {
                         onBookUpdated();
                     }
 
-                    // Reset form and close dialog after showing success
+
                     setTimeout(() => {
                         setOpen(false);
                         setUploadProgress(0);
@@ -98,8 +98,7 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                 }
             },
             onFinish: () => {
-                // Always ensure loading state is reset on finish
-                // (this runs after onSuccess or onError)
+
             },
         });
     };
@@ -169,9 +168,9 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
+                <Button variant="ghost" size="sm" className="cursor-pointer hover:bg-gray-300">
+                    <Edit className="h-4 w-4" />
+                    
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-4xl">
@@ -427,13 +426,6 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
                                         <SelectContent>
                                             <SelectItem value="en">English</SelectItem>
                                             <SelectItem value="fil">Filipino</SelectItem>
-                                            <SelectItem value="es">Spanish</SelectItem>
-                                            <SelectItem value="zh">Chinese</SelectItem>
-                                            <SelectItem value="ja">Japanese</SelectItem>
-                                            <SelectItem value="ko">Korean</SelectItem>
-                                            <SelectItem value="fr">French</SelectItem>
-                                            <SelectItem value="de">German</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.language && (

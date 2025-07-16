@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category, type Course } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { Eye, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
 interface BooksIndexProps {
@@ -21,10 +21,15 @@ interface BooksIndexProps {
 }
 
 export default function BooksIndex({ books, categories, courses, filters }: BooksIndexProps) {
-    const [localFilters, setLocalFilters] = useState({
-        search: filters.search ?? '',
-        category: filters.category ?? 'all',
-    });
+    const isInitialRender = useRef(true);
+
+    // Normalize filters to handle null/undefined values
+    const normalizedFilters = {
+        search: filters.search || '',
+        category: filters.category || 'all',
+    };
+
+    const [localFilters, setLocalFilters] = useState(normalizedFilters);
     const [isSearching, setIsSearching] = useState(false);
 
     // Debounce for better UX
@@ -47,7 +52,14 @@ export default function BooksIndex({ books, categories, courses, filters }: Book
     };
 
     useEffect(() => {
-        if (debouncedFilters.search === filters.search && debouncedFilters.category === filters.category) {
+        // Skip search on initial render to avoid loading indicator on page refresh
+        if (isInitialRender.current) {
+            isInitialRender.current = false;
+            return;
+        }
+
+        // Check if filters actually changed
+        if (debouncedFilters.search === normalizedFilters.search && debouncedFilters.category === normalizedFilters.category) {
             return;
         }
 

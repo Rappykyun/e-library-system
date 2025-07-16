@@ -20,9 +20,8 @@ export function DeleteBookDialog({ book }: { book: Book }) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="destructive" size="sm" className="cursor-pointer">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
+                <Button variant="ghost" size="sm" className="cursor-pointer hover:bg-red-500 hover:text-white">
+                    <Trash2 className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
             <DialogContent>

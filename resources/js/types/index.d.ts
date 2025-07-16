@@ -62,6 +62,7 @@ export interface Program {
     name: string;
     description: string | null;
     courses_count?: number;
+    books_count?: number;
 }
 
 export interface Course {

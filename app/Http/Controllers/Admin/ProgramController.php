@@ -16,7 +16,7 @@ class ProgramController extends Controller
     public function index()
     {
         return Inertia::render('admin/programs/index', [
-            'programs' => Program::withCount('courses')->latest()->paginate(10),
+            'programs' => Program::withCount(['courses', 'books'])->latest()->paginate(10),
         ]);
     }
 

@@ -56,7 +56,7 @@ export default function ProgramsIndex({ programs }: ProgramsIndexProps) {
                                                 <TableCell className="font-medium">{program.name}</TableCell>
 
                                                 <TableCell>{program.courses_count}</TableCell>
-                                                <TableCell>0</TableCell>
+                                                <TableCell>{program.books_count}</TableCell>
                                                 <TableCell className="text-right">
                                                     <div className="flex justify-end gap-2">
                                                         <EditProgramForm program={program} />

@@ -432,13 +432,7 @@ export function AddBookForm({ categories, courses, onBookAdded }: AddBookFormPro
                                         <SelectContent>
                                             <SelectItem value="en">English</SelectItem>
                                             <SelectItem value="fil">Filipino</SelectItem>
-                                            <SelectItem value="es">Spanish</SelectItem>
-                                            <SelectItem value="zh">Chinese</SelectItem>
-                                            <SelectItem value="ja">Japanese</SelectItem>
-                                            <SelectItem value="ko">Korean</SelectItem>
-                                            <SelectItem value="fr">French</SelectItem>
-                                            <SelectItem value="de">German</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
+                                           
                                         </SelectContent>
                                     </Select>
                                     {errors.language && (
