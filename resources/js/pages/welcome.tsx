@@ -52,9 +52,7 @@ export default function Welcome() {
                 {/* Main Content */}
                 <main className="flex flex-1 items-center justify-center p-6 lg:p-8">
                     <div className="w-full max-w-4xl text-center">
-                        <h1 className="mb-4 text-4xl font-bold text-[#2A5298] lg:text-6xl">
-                            Welcome to CHED E-Library
-                        </h1>
+                        <h1 className="mb-4 text-4xl font-bold text-[#2A5298] lg:text-6xl">Welcome to CHED E-Library</h1>
                         <p className="mb-8 text-lg text-gray-600 dark:text-gray-400">
                             Access academic resources and digital books for higher education
                         </p>

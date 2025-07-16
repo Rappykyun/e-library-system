@@ -2,18 +2,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type Category } from '@/types';
-import { X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 interface BookFiltersProps {
     categories: Category[];
     filters: { search: string; category: string };
     onFilterChange: (name: string, value: string) => void;
- 
+    isSearching?: boolean;
 }
 
-export function BookFilters({ categories, filters, onFilterChange }: BookFiltersProps) {
+export function BookFilters({ categories, filters, onFilterChange, isSearching = false }: BookFiltersProps) {
     return (
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 mr-2">
+        <div className="mr-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <div className="lg:col-span-2">
                 <label htmlFor="search" className="sr-only">
                     Search
@@ -22,19 +22,23 @@ export function BookFilters({ categories, filters, onFilterChange }: BookFilters
                     <Input
                         id="search"
                         placeholder="Search by title or author..."
-                        className="w-full pr-10" 
+                        className="w-full pr-10"
                         value={filters.search}
                         onChange={(e) => onFilterChange('search', e.target.value)}
                     />
-                    {filters.search && (
-                        <Button
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-full h-2 w-2 hover:bg-gray-200 cursor-pointer"
-                            onClick={() => onFilterChange('search', '')}
-                            variant="ghost"
-                        >
-                            <X className="h-1/2 w-1/2 text-gray-500" />
-                        </Button>
-                    )}
+                    <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
+                        {isSearching && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                        {filters.search && (
+                            <Button
+                                className="h-6 w-6 cursor-pointer rounded-full p-1 hover:bg-gray-200"
+                                onClick={() => onFilterChange('search', '')}
+                                variant="ghost"
+                                size="sm"
+                            >
+                                <X className="h-3 w-3 text-gray-500" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
             <div>
@@ -52,7 +56,6 @@ export function BookFilters({ categories, filters, onFilterChange }: BookFilters
                     </SelectContent>
                 </Select>
             </div>
-         
         </div>
     );
 }

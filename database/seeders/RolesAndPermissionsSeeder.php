@@ -28,6 +28,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'download books',
             'view books',
             'bookmark books',
+            'view enrolled courses',
             'system settings',
             'manage course shelves',
         ];
@@ -42,7 +43,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'browse books',
             'download books',
             'view books',
-            'bookmark books'
+            'bookmark books',
+            'view enrolled courses'
         ]);
 
         // 📚 LIBRARIAN ROLE - Manage books and categories + dashboard

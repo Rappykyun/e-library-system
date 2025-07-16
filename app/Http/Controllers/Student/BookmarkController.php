@@ -14,7 +14,7 @@ class BookmarkController extends Controller
 {
     public function index()
     {
-        // ✅ FIXED: Simple query to get user's bookmarked books
+  
         $bookmarks = Auth::user()
             ->bookmarkedBooks()
             ->with([

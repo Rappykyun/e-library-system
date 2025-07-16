@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\DownloadLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class BookController extends Controller
@@ -15,27 +16,49 @@ class BookController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only(['search', 'category']);
+        $search = $request->input('search');
+        $category = $request->input('category');
+        $page = $request->input('page', 1);
 
-        $books = Book::query()
-            ->with('category')
-            ->withUserData(Auth::user())
-            ->when($request->input('search'), function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")->orWhere('author', 'like', "%{$search}%");
-                });
-            })
-            ->when($request->input('category'), function ($query, $categorySlug) {
-                if ($categorySlug !== 'all') {
-                    $query->whereHas('category', function ($q) use ($categorySlug) {
-                        $q->where('slug', $categorySlug);
-                    });
-                }
-            })
-            ->latest()
-            ->paginate(8)
-            ->withQueryString();
+        // Create cache key for search results
+        $cacheKey = 'books_search_' . md5(json_encode($filters) . '_page_' . $page . '_user_' . Auth::id());
 
-        $categories = Category::orderBy('name')->get();
+        // Try to get results from cache first (cache for 5 minutes)
+        $books = Cache::remember($cacheKey, 300, function () use ($search, $category) {
+            return Book::query()
+                ->with([
+                    'category:id,name,slug',  // Only load needed fields
+                    'bookmarks' => function ($query) {
+                        $query->where('user_id', Auth::id())
+                            ->select('id', 'user_id', 'book_id');  // Only needed fields
+                    },
+                    'ratings' => function ($query) {
+                        $query->where('user_id', Auth::id())
+                            ->select('id', 'user_id', 'book_id', 'rating');  // Only needed fields
+                    }
+                ])
+                ->select([
+                    'id',
+                    'title',
+                    'author',
+                    'category_id',
+                    'cover_image_url',
+                    'download_count',
+                    'views_count',
+                    'created_at'
+                ])
+                ->fastSearch($search, $category)
+                ->orderByDesc('created_at')  // Use indexed field for sorting
+                ->paginate(12)  // Increase page size for better performance
+                ->withQueryString();
+        });
+
+        // Cache categories for 1 hour (the
+        $categories = Cache::remember('categories_list', 3600, function () {
+            return Category::select('id', 'name', 'slug')
+                ->orderBy('name')
+                ->get();
+        });
 
         return Inertia::render('student/books/index', [
             'books' => $books,

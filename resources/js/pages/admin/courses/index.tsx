@@ -11,13 +11,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserAvatarGroup } from '@/components/user-avatar-group';
 import AppLayout from '@/layouts/app-layout';
-import { Course, Paginated, Program, User } from '@/types';
-import { Head, PageProps, router } from '@inertiajs/react';
+import { Course, PaginatedResponse, Program, User } from '@/types';
+import { Head, router } from '@inertiajs/react';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface CoursesIndexProps {
-    courses: Paginated<Course>;
+    courses: PaginatedResponse<Course>;
     programs: Program[];
     faculty: User[];
     students: User[];
@@ -27,7 +27,7 @@ interface CoursesIndexProps {
     };
 }
 
-export default function CoursesIndex({ courses, programs, faculty, students, filters }: PageProps<CoursesIndexProps>) {
+export default function CoursesIndex({ courses, programs, faculty, students, filters }: CoursesIndexProps) {
     const [programFilter, setProgramFilter] = useState(filters.program || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'active');
     const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
