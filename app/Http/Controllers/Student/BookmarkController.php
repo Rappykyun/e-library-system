@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Bookmark;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,7 +13,6 @@ class BookmarkController extends Controller
 {
     public function index()
     {
-  
         $bookmarks = Auth::user()
             ->bookmarkedBooks()
             ->with([
@@ -31,7 +29,7 @@ class BookmarkController extends Controller
         ]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $request->validate([
             'book_id' => 'required|exists:books,id'
@@ -46,10 +44,7 @@ class BookmarkController extends Controller
             ->first();
 
         if ($existingBookmark) {
-            return response()->json([
-                'message' => 'Book is already bookmarked',
-                'bookmarked' => true
-            ], 200);
+            return back()->with('message', 'Book is already bookmarked');
         }
 
         // Create bookmark
@@ -58,13 +53,10 @@ class BookmarkController extends Controller
             'book_id' => $bookId
         ]);
 
-        return response()->json([
-            'message' => 'Book bookmarked successfully',
-            'bookmarked' => true
-        ], 201);
+        return back()->with('success', 'Book bookmarked successfully');
     }
 
-    public function destroy(Request $request): JsonResponse
+    public function destroy(Request $request)
     {
         $request->validate([
             'book_id' => 'required|exists:books,id'
@@ -78,17 +70,11 @@ class BookmarkController extends Controller
             ->first();
 
         if (!$bookmark) {
-            return response()->json([
-                'message' => 'Bookmark not found',
-                'bookmarked' => false
-            ], 404);
+            return back()->with('error', 'Bookmark not found');
         }
 
         $bookmark->delete();
 
-        return response()->json([
-            'message' => 'Bookmark removed successfully',
-            'bookmarked' => false
-        ], 200);
+        return back()->with('success', 'Bookmark removed successfully');
     }
 }

@@ -27,7 +27,19 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        $course->load(['program', 'faculty', 'shelfBooks.category']);
+        $course->load([
+            'program',
+            'faculty',
+            'shelfBooks.category',
+            'shelfBooks.bookmarks' => function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->select('id', 'user_id', 'book_id');
+            },
+            'shelfBooks.ratings' => function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->select('id', 'user_id', 'book_id', 'rating');
+            }
+        ]);
 
         return Inertia::render('student/courses/show', [
             'course' => $course

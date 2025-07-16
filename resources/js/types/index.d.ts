@@ -140,6 +140,7 @@ interface BookFormData {
 }
 
 export interface Paginated<T> {
+    total: NavGroupumber;
     data: T[];
     links: {
         first: string;

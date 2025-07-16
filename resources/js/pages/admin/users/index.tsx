@@ -128,38 +128,61 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
                         {/* Users Table */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>All Users</CardTitle>
+                                <CardTitle>All Users ({users.total})</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>User</TableHead>
-                                            <TableHead>Email</TableHead>
-                                            <TableHead>Role</TableHead>
-                                            <TableHead>Joined</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {users.data.map((user) => (
-                                            <TableRow key={user.id}>
-                                                <TableCell className="font-medium">{user.name}</TableCell>
-                                                <TableCell>{user.email}</TableCell>
-                                                <TableCell>
-                                                    <RoleBadge roleName={user.roles?.[0]?.name || 'unknown'} />
-                                                </TableCell>
-                                                <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex justify-end space-x-2">
-                                                        <EditUserForm user={user} roles={roles} />
-                                                        {isAdmin && authUser?.id !== user.id && <DeleteUserDialog user={user} />}
-                                                    </div>
-                                                </TableCell>
+                                <div className="rounded-md border">
+                                    <Table>activit
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Email</TableHead>
+                                                <TableHead>Role</TableHead>
+                                                <TableHead>Joined</TableHead>
+                                                {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {users.data.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={isAdmin ? 5 : 4} className="h-24 text-center text-muted-foreground">
+                                                        No users found.
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                users.data.map((user: User) => {
+                                                    const currentRole = user.roles?.[0]?.name || 'unknown';
+                                                    const isUserAdmin = currentRole === 'admin';
+                                                    const isSelf = authUser?.id === user.id;
+
+                                                    return (
+                                                        <TableRow key={user.id} className="hover:bg-muted/50">
+                                                            <TableCell className="font-medium">
+                                                                <div className="flex flex-col">
+                                                                    <span>{user.name}</span>
+                                                                    {isSelf && <span className="text-xs text-blue-600">(Your account)</span>}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                                                            <TableCell>
+                                                                <RoleBadge roleName={currentRole} />
+                                                            </TableCell>
+                                                            <TableCell className="text-muted-foreground">
+                                                                {new Date(user.created_at).toLocaleDateString()}
+                                                            </TableCell>
+                                                            {isAdmin && (
+                                                                <TableCell className="flex justify-end gap-2 text-right">
+                                                                    {!isSelf && !isUserAdmin && <EditUserForm user={user} roles={roles} />}
+                                                                    {!isSelf && !isUserAdmin && <DeleteUserDialog user={user} />}
+                                                                </TableCell>
+                                                            )}
+                                                        </TableRow>
+                                                    );
+                                                })
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

@@ -54,7 +54,7 @@ class Book extends Model
         return $this->belongsToMany(Course::class, 'course_book');
     }
 
-    public function bookMarks(): HasMany
+    public function bookmarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
     }
@@ -78,7 +78,7 @@ class Book extends Model
     {
         if (!$user)
             return false;
-        return $this->bookMarks()->where('user_id', $user->id)->exists();
+        return $this->bookmarks()->where('user_id', $user->id)->exists();
     }
 
     public function getUserRating(?User $user): ?int

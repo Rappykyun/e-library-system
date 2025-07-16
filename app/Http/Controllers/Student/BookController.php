@@ -20,23 +20,13 @@ class BookController extends Controller
         $category = $request->input('category');
         $page = $request->input('page', 1);
 
-        // Create cache key for search results
-        $cacheKey = 'books_search_' . md5(json_encode($filters) . '_page_' . $page . '_user_' . Auth::id());
+        // Create cache key for search results (without user-specific data)
+        $cacheKey = 'books_search_' . md5(json_encode($filters) . '_page_' . $page);
 
-        // Try to get results from cache first (cache for 5 minutes)
+        // Get books from cache (without user-specific relationships)
         $books = Cache::remember($cacheKey, 300, function () use ($search, $category) {
             return Book::query()
-                ->with([
-                    'category:id,name,slug',  // Only load needed fields
-                    'bookmarks' => function ($query) {
-                        $query->where('user_id', Auth::id())
-                            ->select('id', 'user_id', 'book_id');  // Only needed fields
-                    },
-                    'ratings' => function ($query) {
-                        $query->where('user_id', Auth::id())
-                            ->select('id', 'user_id', 'book_id', 'rating');  // Only needed fields
-                    }
-                ])
+                ->with(['category:id,name,slug'])  // Only load category, not user-specific data
                 ->select([
                     'id',
                     'title',
@@ -53,7 +43,19 @@ class BookController extends Controller
                 ->withQueryString();
         });
 
-        // Cache categories for 1 hour (the
+        // Load user-specific relationships (bookmarks, ratings) outside cache for real-time updates
+        $books->load([
+            'bookmarks' => function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->select('id', 'user_id', 'book_id');
+            },
+            'ratings' => function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->select('id', 'user_id', 'book_id', 'rating');
+            }
+        ]);
+
+        // Cache categories for 1 hour
         $categories = Cache::remember('categories_list', 3600, function () {
             return Category::select('id', 'name', 'slug')
                 ->orderBy('name')

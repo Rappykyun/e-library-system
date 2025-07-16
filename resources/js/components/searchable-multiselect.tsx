@@ -1,11 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState } from 'react';
-import { ChevronsUpDown, X } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Check } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface SearchableMultiSelectProps {
     options: { value: string; label: string }[];
@@ -44,7 +43,11 @@ export default function SearchableMultiSelect({
                             <span className="text-muted-foreground">{placeholder}</span>
                         ) : (
                             selectedOptions.map((option) => (
-                                <Badge key={option.value} variant="secondary" className="mr-1 mb-1 border-blue-500 hover:bg-gray-300 hover:text-blue-500">
+                                <Badge
+                                    key={option.value}
+                                    variant="secondary"
+                                    className="mr-1 mb-1 border-blue-500 hover:bg-gray-300 hover:text-blue-500"
+                                >
                                     {option.label}
                                     <button
                                         type="button"
