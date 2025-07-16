@@ -43,7 +43,7 @@ export function DeleteCourseDialog({ course }: { course: Course }) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} disabled={isSubmitting} className="bg-destructive-foreground">
+                    <AlertDialogAction onClick={handleDelete} disabled={isSubmitting}>
                         {isSubmitting ? 'Deleting...' : 'Delete'}
                     </AlertDialogAction>
                 </AlertDialogFooter>

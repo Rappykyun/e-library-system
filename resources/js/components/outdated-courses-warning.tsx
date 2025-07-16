@@ -33,7 +33,7 @@ export function OutdatedCoursesWarning({ courses }: OutdatedCoursesWarningProps)
                         <Link
                             key={course.id}
                             href={route('admin.courses.edit', { course: course.id })}
-                            className="flex items-center justify-between rounded-lg bg-white/60 p-3 transition-all hover:bg-white hover:shadow-md"
+                            className="flex items-center justify-between rounded-lg bg-white/60 p-3 "
                         >
                             <div className="flex items-center gap-3">
                                 <Book className="h-5 w-5 text-muted-foreground" />

@@ -2,12 +2,13 @@ import { AddBookForm } from '@/components/add-book-form';
 import { AppPagination } from '@/components/app-pagination';
 import { DeleteBookDialog } from '@/components/delete-book-dialog';
 import { EditBookForm } from '@/components/edit-book-form';
+import { Heading } from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category, type Course } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { BookOpen, Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 interface BooksIndexProps {
     books: PaginatedResponse<Book>;
@@ -17,22 +18,20 @@ interface BooksIndexProps {
 
 export default function BooksIndex({ books, categories, courses }: BooksIndexProps) {
     const handleBookAdded = () => {
-  //refresh the current page
         router.reload({ only: ['books'] });
     };
 
     const handleBookUpdated = () => {
-        // Refresh the current page 
         router.reload({ only: ['books'] });
     };
 
     return (
         <AppLayout>
             <Head title="Manage Books" />
-            <div className="p-2 lg:py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-6">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="mb-4 flex items-center justify-between">
-                        <h1 className="text-2xl font-semibold">Manage Books</h1>
+                        <Heading title="Manage Books" description="Manage all books in the library system." />
                         <AddBookForm categories={categories} courses={courses} onBookAdded={handleBookAdded} />
                     </div>
 
@@ -52,37 +51,23 @@ export default function BooksIndex({ books, categories, courses }: BooksIndexPro
                             <TableBody>
                                 {books.data.map((book) => (
                                     <TableRow key={book.id}>
-                                        <TableCell className="w-20">
-                                            <div className="h-30 w-24 overflow-hidden rounded border">
-                                                {book.cover_image_url ? (
-                                                    <img
-                                                        src={book.cover_image_url}
-                                                        alt={`Thumbnail of ${book.title}`}
-                                                        className="h-full w-full object-cover"
-                                                        loading="lazy"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-full w-full items-center justify-center">
-                                                        <BookOpen className="h-6 w-6 text-muted-foreground" />
-                                                    </div>
-                                                )}
-                                            </div>
+                                        <TableCell>
+                                            <img
+                                                src={book.cover_image_url || '/placeholder-book.jpg'}
+                                                alt={book.title}
+                                                className="h-10 w-10 rounded object-cover"
+                                            />
                                         </TableCell>
-                                        <TableCell className="font-medium">
-                                            <div className="max-w-xs">
-                                                <p className="truncate font-semibold">{book.title}</p>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>{book.author.length > 25 ? `${book.author.slice(0, 25)}...` : book.author}</TableCell>
-                                        <TableCell>{book.category?.name}</TableCell>
+                                        <TableCell>{book.title}</TableCell>
+                                        <TableCell>{book.author}</TableCell>
+                                        <TableCell>{book.category.name}</TableCell>
                                         <TableCell>{book.views_count}</TableCell>
                                         <TableCell>{book.download_count}</TableCell>
                                         <TableCell className="text-right">
-                                            <div className="flex items-center justify-end space-x-2">
+                                            <div className="flex justify-end space-x-2">
                                                 <Link href={route('admin.books.show', book.id)}>
-                                                    <Button variant="outline" size="sm">
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        View
+                                                    <Button variant="ghost" size="sm">
+                                                        <Eye className="h-4 w-4" />
                                                     </Button>
                                                 </Link>
                                                 <EditBookForm
@@ -99,12 +84,9 @@ export default function BooksIndex({ books, categories, courses }: BooksIndexPro
                             </TableBody>
                         </Table>
                     </div>
-
-                    {books.last_page > 1 && (
-                        <div className="mt-4 flex justify-center">
-                            <AppPagination data={books} />
-                        </div>
-                    )}
+                    <div className="pt-4">
+                        <AppPagination data={books} />
+                    </div>
                 </div>
             </div>
         </AppLayout>
