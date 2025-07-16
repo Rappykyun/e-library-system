@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react';
 
 export function EditCategoryForm({ category }: { category: Category }) {
     const [open, setOpen] = useState(false);
-    const { data, setData, patch, processing, errors, reset } = useForm({
+    const { data, setData, patch, processing, errors } = useForm({
         name: category.name,
         description: category.description,
     });

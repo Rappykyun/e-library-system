@@ -72,10 +72,10 @@ export const MultiSelect = React.forwardRef<
             value,
             defaultValue = [],
             placeholder = "Select options...",
-            animation = 0,
+          
             maxCount = 3,
             modalPopover = false,
-            asChild = false,
+    
             className,
             ...props
         },

@@ -131,10 +131,10 @@ interface BookFormData {
     author: string;
     publisher: string;
     isbn: string;
-    published_year: string; // HTML inputs give you strings – parse to number in handleSubmit if you need it numeric.
+    published_year: string; 
     pages: string;
     language: string;
-    category_id: string; // or number, then cast to string when binding to <Select>
+    category_id: string;
     description: string;
     ebook: File | null;
 }

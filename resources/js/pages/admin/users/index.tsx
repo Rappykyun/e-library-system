@@ -132,7 +132,7 @@ export default function UsersIndex({ users, roles }: UsersIndexProps) {
                             </CardHeader>
                             <CardContent>
                                 <div className="rounded-md border">
-                                    <Table>activit
+                                    <Table>
                                         <TableHeader>
                                             <TableRow>
                                                 <TableHead>Name</TableHead>

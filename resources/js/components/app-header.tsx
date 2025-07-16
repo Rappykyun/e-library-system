@@ -47,15 +47,15 @@ const adminNavItems: NavItem[] = [
         permission: 'create categories',
     },
     {
-        title: 'Users',
-        href: '/admin/users',
-        icon: Users,
-        permission: 'view users',
-    },
-    {
         title: 'Activity Logs',
         href: '/admin/activity-logs',
         icon: FileClock,
+        permission: 'view users',
+    },
+    {
+        title: 'Users',
+        href: '/admin/users',
+        icon: Users,
         permission: 'view users',
     },
 ];
