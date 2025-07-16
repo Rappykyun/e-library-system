@@ -30,9 +30,19 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $books = Book::with(['category', 'course.program'])->latest()->paginate(4);
+        $filters = $request->only(['search', 'category']);
+        $search = $request->input('search');
+        $category = $request->input('category');
+
+        $books = Book::query()
+            ->with(['category', 'course.program'])
+            ->fastSearch($search, $category)
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
         $categories = Category::orderBy('name')->get();
         $courses = Course::with('program')->orderBy('name')->get();
 
@@ -40,6 +50,7 @@ class BookController extends Controller
             'books' => $books,
             'categories' => $categories,
             'courses' => $courses,
+            'filters' => $filters,
         ]);
     }
 

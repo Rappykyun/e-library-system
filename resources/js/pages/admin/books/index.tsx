@@ -1,5 +1,6 @@
 import { AddBookForm } from '@/components/add-book-form';
 import { AppPagination } from '@/components/app-pagination';
+import { BookFilters } from '@/components/book-filter';
 import { DeleteBookDialog } from '@/components/delete-book-dialog';
 import { EditBookForm } from '@/components/edit-book-form';
 import { Heading } from '@/components/heading';
@@ -8,15 +9,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedResponse, type Book, type Category, type Course } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Eye } from 'lucide-react';
+import { Eye, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 
 interface BooksIndexProps {
     books: PaginatedResponse<Book>;
     categories: Category[];
     courses: Course[];
+    filters: { search: string; category: string };
 }
 
-export default function BooksIndex({ books, categories, courses }: BooksIndexProps) {
+export default function BooksIndex({ books, categories, courses, filters }: BooksIndexProps) {
+    const [localFilters, setLocalFilters] = useState({
+        search: filters.search ?? '',
+        category: filters.category ?? 'all',
+    });
+    const [isSearching, setIsSearching] = useState(false);
+
+    // Debounce for better UX
+    const [debouncedFilters] = useDebounce(localFilters, 300);
+
     const handleBookAdded = () => {
         router.reload({ only: ['books'] });
     };
@@ -24,6 +37,28 @@ export default function BooksIndex({ books, categories, courses }: BooksIndexPro
     const handleBookUpdated = () => {
         router.reload({ only: ['books'] });
     };
+
+    const handleFilterChange = (name: string, value: string) => {
+        setLocalFilters((prev) => ({ ...prev, [name]: value }));
+
+        if (name === 'search') {
+            setIsSearching(true);
+        }
+    };
+
+    useEffect(() => {
+        if (debouncedFilters.search === filters.search && debouncedFilters.category === filters.category) {
+            return;
+        }
+
+        setIsSearching(true);
+
+        router.get(route('admin.books.index'), debouncedFilters, {
+            preserveState: true,
+            replace: true,
+            onFinish: () => setIsSearching(false),
+        });
+    }, [debouncedFilters]);
 
     return (
         <AppLayout>
@@ -33,6 +68,24 @@ export default function BooksIndex({ books, categories, courses }: BooksIndexPro
                     <div className="mb-4 flex items-center justify-between">
                         <Heading title="Manage Books" description="Manage all books in the library system." />
                         <AddBookForm categories={categories} courses={courses} onBookAdded={handleBookAdded} />
+                    </div>
+
+                    {/* Search Filters */}
+                    <div className="mb-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            {isSearching && <Loader2 className="h-4 w-4 animate-spin" />}
+                            <span className="text-sm text-gray-600">
+                                {books.total > 0 ? (
+                                    <>
+                                        Showing {books.from} to {books.to} of {books.total} books
+                                        {localFilters.search && <span className="font-medium"> for "{localFilters.search}"</span>}
+                                    </>
+                                ) : (
+                                    'No books found'
+                                )}
+                            </span>
+                        </div>
+                        <BookFilters categories={categories} filters={localFilters} onFilterChange={handleFilterChange} isSearching={isSearching} />
                     </div>
 
                     <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
