@@ -97,7 +97,7 @@ export function EditCourseForm({ course, programs, faculty, students }: EditCour
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
-                        <ShadSelect onValueChange={(value) => setData('status', value)} defaultValue={data.status}>
+                        <ShadSelect onValueChange={(value) => setData('status', value as 'active' | 'archived')} defaultValue={data.status}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a status" />
                             </SelectTrigger>

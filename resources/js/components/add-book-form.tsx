@@ -11,7 +11,6 @@ import { useForm } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, FileText, Image, Loader2, Upload, X } from 'lucide-react';
 import { DragEvent, FormEventHandler, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { route } from 'ziggy-js';
 
 interface AddBookFormProps {
     categories: Category[];
