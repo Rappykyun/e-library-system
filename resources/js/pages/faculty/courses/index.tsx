@@ -15,7 +15,7 @@ export default function FacultyCoursesIndex({ courses }: FacultyCoursesIndexProp
             <Head title="My Courses" />
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <Card>
+                    <Card className="p-5">
                         <CardHeader>
                             <CardTitle>My Courses</CardTitle>
                             <CardDescription>Select a course to manage its book shelf.</CardDescription>

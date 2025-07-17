@@ -198,3 +198,4 @@ export interface DownloadLog extends AppModel {
     activity_type: 'download' | 'preview';
     created_at: string;
 }
+

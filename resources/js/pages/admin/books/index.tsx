@@ -70,7 +70,7 @@ export default function BooksIndex({ books, categories, courses, filters }: Book
             replace: true,
             onFinish: () => setIsSearching(false),
         });
-    }, [debouncedFilters]);
+    }, [debouncedFilters, normalizedFilters.search, normalizedFilters.category]);
 
     return (
         <AppLayout>
@@ -131,7 +131,7 @@ export default function BooksIndex({ books, categories, courses, filters }: Book
                                         <TableCell className="text-right">
                                             <div className="flex justify-end space-x-2">
                                                 <Link href={route('admin.books.show', book.id)}>
-                                                    <Button variant="ghost" size="sm" className='hover:bg-gray-300'>
+                                                    <Button variant="ghost" size="sm" className="hover:bg-gray-300">
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
                                                 </Link>

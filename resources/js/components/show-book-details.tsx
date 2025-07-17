@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Book, type Category, type Course } from '@/types';
 import { Link } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, Building2, Calendar, Download, Eye, FileText, Globe, Hash, Share2, Star, Tag, User } from 'lucide-react';
+import { ArrowLeft, BookOpen, Building2, Calendar, Download, Eye, FileText, Globe, Hash, Share2, Tag, User } from 'lucide-react';
 import { useState } from 'react';
 import { BookmarkButton } from './bookmark-button';
 import { DeleteBookDialog } from './delete-book-dialog';
@@ -176,16 +176,6 @@ export function ShowBookDetails({ book, categories, courses = [], showAdminActio
                                                         by <span className="font-semibold text-gray-800">{book.author}</span>
                                                     </span>
                                                 </div>
-                                            </div>
-
-                                            {/* Rating placeholder */}
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex">
-                                                    {[1, 2, 3, 4, 5].map((star) => (
-                                                        <Star key={star} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                                    ))}
-                                                </div>
-                                                <span className="text-xs text-gray-500">(4.5 • 124 reviews)</span>
                                             </div>
                                         </div>
                                     </CardContent>

@@ -6,20 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
-import { Book, Category, Course, PageProps } from '@/types';
+import { Book, Category, Course, SharedData } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
 import { AlertTriangle, BookOpen, Filter, Grid3X3, List, Loader2, Search, X } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
-interface FacultyCourseShowProps extends PageProps {
+interface FacultyCourseShowProps extends SharedData {
     course: Course;
     allBooks: Book[];
     categories: Category[];
     filters: { search: string; category: string };
 }
 
-export default function FacultyCourseShow({ auth, course, allBooks, categories, filters }: FacultyCourseShowProps) {
+export default function FacultyCourseShow({ course, allBooks, categories, filters }: FacultyCourseShowProps) {
     const [selectedView, setSelectedView] = useState<'grid' | 'list'>('grid');
     const [localFilters, setLocalFilters] = useState({
         search: filters.search || '',
@@ -31,7 +31,7 @@ export default function FacultyCourseShow({ auth, course, allBooks, categories, 
         book_ids: course.shelf_books?.map((b) => b.id) || [],
     });
 
-    // Debounce search for better performance
+    // Debounce search
     const [debouncedFilters] = useDebounce(localFilters, 300);
 
     const handleFilterChange = (name: string, value: string) => {
@@ -46,20 +46,30 @@ export default function FacultyCourseShow({ auth, course, allBooks, categories, 
     };
 
     useEffect(() => {
-        if (debouncedFilters.search === filters.search && debouncedFilters.category === filters.category) {
+        // To prevent unnecessary requests on mount, we compare the debounced
+        // filters with the initial filters from the server.
+        const hasQueryChanged = debouncedFilters.search !== (filters.search || '') || debouncedFilters.category !== (filters.category || 'all');
+
+        if (!hasQueryChanged) {
             return;
         }
 
         setIsSearching(true);
-        router.get(route('faculty.courses.show', course.id), debouncedFilters, {
-            preserveState: true,
-            replace: true,
-            onFinish: () => setIsSearching(false),
-        });
-    }, [debouncedFilters]);
+        router.get(
+            route('faculty.courses.show', course.id),
+            {
+                ...debouncedFilters,
+            },
+            {
+                preserveState: true,
+                replace: true,
+                onFinish: () => setIsSearching(false),
+            },
+        );
+    }, [debouncedFilters, course.id, filters.search, filters.category]);
 
     const handleCheckboxChange = (bookId: number, checked: boolean) => {
-        let currentIds = data.book_ids;
+        const currentIds = data.book_ids;
         if (checked) {
             setData('book_ids', [...currentIds, bookId]);
         } else {
@@ -200,7 +210,7 @@ export default function FacultyCourseShow({ auth, course, allBooks, categories, 
     };
 
     return (
-        <AppLayout user={auth.user}>
+        <AppLayout>
             <Head title={`Manage Shelf for ${course.name}`} />
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -15,8 +15,15 @@ class ProgramController extends Controller
      */
     public function index()
     {
+        $programs = Program::with('courses.shelfBooks')->withCount('courses')->latest()->paginate(10);
+
+        $programs->each(function ($program) {
+            $program->books_count = $program->courses->reduce(function ($carry, $course) {
+                return $carry + $course->shelfBooks->count();
+            }, 0);
+        });
         return Inertia::render('admin/programs/index', [
-            'programs' => Program::withCount(['courses', 'books'])->latest()->paginate(10),
+            'programs' => $programs,
         ]);
     }
 

@@ -17,9 +17,4 @@ class Program extends Model
     {
         return $this->hasMany(Course::class);
     }
-
-    public function books(): HasManyThrough
-    {
-        return $this->hasManyThrough(Book::class, Course::class);
-    }
 }

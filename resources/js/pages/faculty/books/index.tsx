@@ -21,20 +21,17 @@ export default function BooksIndex({ books, categories, filters }: BooksIndexPro
     });
     const [isSearching, setIsSearching] = useState(false);
 
-    // Optimize debounce timing: 300ms for better UX
     const [debouncedFilters] = useDebounce(localFilters, 300);
 
     const handleFilterChange = (name: string, value: string) => {
         setLocalFilters((prev) => ({ ...prev, [name]: value }));
 
-        // Show loading state immediately for search
         if (name === 'search') {
             setIsSearching(true);
         }
     };
 
     useEffect(() => {
-        // Skip initial render to avoid unnecessary API call
         if (debouncedFilters.search === filters.search && debouncedFilters.category === filters.category) {
             return;
         }

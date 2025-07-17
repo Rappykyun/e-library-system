@@ -97,13 +97,6 @@ class DashboardController extends Controller
                     ];
                 });
 
-            // Top rated books - OMITTED because `average_rating` and `total_ratings` columns are missing from the `books` table.
-            // $topRatedBooks = Book::with('category')
-            //     ->where('total_ratings', '>', 0)
-            //     ->orderBy('average_rating', 'desc')
-            //     ->orderBy('total_ratings', 'desc')
-            //     ->take(5)
-            //     ->get(['id', 'title', 'author', 'average_rating', 'total_ratings', 'category_id']);
 
             return Inertia::render('admin/dashboard', [
                 'stats' => [
@@ -127,6 +120,9 @@ class DashboardController extends Controller
         }
         if ($request->user()->hasRole('librarian')) {
             return redirect()->route('admin.books.index');
+        }
+        if ($request->user()->hasRole('faculty')) {
+            return redirect()->route('faculty.courses.index');
         }
         if ($request->user()->hasRole('student')) {
             return redirect()->route('student.books.index');
