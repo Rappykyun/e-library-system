@@ -56,7 +56,7 @@ const adminNavItems: NavItem[] = [
         title: 'Users',
         href: '/admin/users',
         icon: Users,
-        permission: 'view users',
+         permission: 'view users',
     },
 ];
 
