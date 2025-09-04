@@ -116,9 +116,9 @@ class AzureBlobService
         $headers = $this->generateHeaders('PUT', $blobName, $contentLength, $contentType);
 
         try {
-            
+
             $response = Http::withHeaders($headers)
-                ->timeout(60) 
+                ->timeout(60)
                 ->connectTimeout(15)
                 ->withBody($content, $contentType)
                 ->put($url);

@@ -3,7 +3,7 @@ use App\Http\Controllers\Student\BookController;
 use App\Http\Controllers\Student\BookmarkController;
 use App\Http\Controllers\Student\CourseController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+
 
 Route::middleware(['auth', 'verified', 'role:student'])
     ->prefix('student')

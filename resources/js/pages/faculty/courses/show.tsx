@@ -1,14 +1,16 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AppLayout from '@/layouts/app-layout';
 import { Book, Category, Course, SharedData } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
-import { AlertTriangle, BookOpen, Filter, Grid3X3, List, Loader2, Search, X } from 'lucide-react';
+import { AlertTriangle, BookOpen, Download, Filter, Grid3X3, List, Loader2, Search, X } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 import { useDebounce } from 'use-debounce';
 
@@ -26,6 +28,8 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
         category: filters.category || 'all',
     });
     const [isSearching, setIsSearching] = useState(false);
+    const [showSelectedOnly, setShowSelectedOnly] = useState(false);
+    const [sortBy, setSortBy] = useState<'relevance' | 'title_asc' | 'title_desc' | 'author_asc' | 'year_desc' | 'downloads_desc'>('relevance');
 
     const { data, setData, put, processing } = useForm({
         book_ids: course.shelf_books?.map((b) => b.id) || [],
@@ -46,8 +50,7 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
     };
 
     useEffect(() => {
-        // To prevent unnecessary requests on mount, we compare the debounced
-        // filters with the initial filters from the server.
+  
         const hasQueryChanged = debouncedFilters.search !== (filters.search || '') || debouncedFilters.category !== (filters.category || 'all');
 
         if (!hasQueryChanged) {
@@ -97,6 +100,36 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
         const book = allBooks.find((b) => b.id === id);
         return book && isBookOutdated(book);
     }).length;
+
+    const initialSelectedIds = course.shelf_books?.map((b) => b.id) || [];
+    const hasChanges =
+        initialSelectedIds.length !== data.book_ids.length ||
+        initialSelectedIds.some((id) => !data.book_ids.includes(id)) ||
+        data.book_ids.some((id) => !initialSelectedIds.includes(id));
+
+    // Visible books after client-side toggles/sorting
+    const visibleBooks = (() => {
+        let list = allBooks;
+        if (showSelectedOnly) {
+            const selectedSet = new Set<number>(data.book_ids);
+            list = list.filter((b) => selectedSet.has(b.id));
+        }
+        switch (sortBy) {
+            case 'title_asc':
+                return [...list].sort((a, b) => a.title.localeCompare(b.title));
+            case 'title_desc':
+                return [...list].sort((a, b) => b.title.localeCompare(a.title));
+            case 'author_asc':
+                return [...list].sort((a, b) => (a.author || '').localeCompare(b.author || ''));
+            case 'year_desc':
+                return [...list].sort((a, b) => parseInt(b.published_year || '0') - parseInt(a.published_year || '0'));
+            case 'downloads_desc':
+                return [...list].sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
+            case 'relevance':
+            default:
+                return list;
+        }
+    })();
 
     const CompactBookCard = ({ book }: { book: Book }) => {
         const isOutdated = isBookOutdated(book);
@@ -166,45 +199,65 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
 
         return (
             <Card
-                className={`transition-all duration-200 ${
+                className={`group transition-all duration-200 ${
                     isSelected ? 'border-primary shadow-md' : 'hover:shadow-sm'
                 } ${isOutdated ? 'border-l-4 border-l-destructive' : ''}`}
             >
-                <CardHeader className="pb-3">
-                    <div className="flex items-start gap-3">
-                        <Checkbox
-                            id={`book-${book.id}`}
-                            checked={isSelected}
-                            onCheckedChange={(checked) => handleCheckboxChange(book.id, Boolean(checked))}
-                            className="mt-1"
-                        />
-                        <div className="flex-1 space-y-2">
-                            <div className="flex items-start justify-between gap-2">
+                <div className="p-3">
+                    <div className="flex gap-3">
+                        <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                            {book.cover_image_url ? (
+                                <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" />
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center">
+                                    <BookOpen className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                            )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <div className="mb-2 flex items-start justify-between gap-2">
                                 <h4 className="line-clamp-2 text-sm leading-tight font-medium">{book.title}</h4>
-                                {isOutdated && (
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <AlertTriangle className="h-4 w-4 text-destructive" />
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Book is more than 5 years old</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
+                                <div className="flex items-center gap-2">
+                                    {isOutdated && (
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger>
+                                                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Book is more than 5 years old</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    )}
+                                    <Checkbox
+                                        id={`book-${book.id}`}
+                                        checked={isSelected}
+                                        onCheckedChange={(checked) => handleCheckboxChange(book.id, Boolean(checked))}
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span className="truncate">{book.author}</span>
+                                {book.category && (
+                                    <>
+                                        <span>•</span>
+                                        <Badge variant="secondary" className="text-xs">
+                                            {book.category.name}
+                                        </Badge>
+                                    </>
                                 )}
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-xs text-muted-foreground">{book.author}</p>
-                                {book.category && (
-                                    <Badge variant="secondary" className="text-xs">
-                                        {book.category.name}
-                                    </Badge>
-                                )}
+                            <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                                {book.published_year && <span>Year: {book.published_year}</span>}
+                                <span className="flex items-center">
+                                    <Download className="mr-1 h-3 w-3" />
+                                    {book.download_count || 0}
+                                </span>
                             </div>
                         </div>
                     </div>
-                </CardHeader>
+                </div>
             </Card>
         );
     };
@@ -217,12 +270,32 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
                     <form onSubmit={submit}>
                         {/* Header */}
                         <div className="mb-6">
-                            <div className="mb-4 flex items-center justify-between">
-                                <div>
+                            <div className="mb-4 flex items-start justify-between gap-4">
+                                <div className="min-w-0">
                                     <h1 className="text-2xl font-bold">Manage "{course.name}" Shelf</h1>
-                                    <p className="text-sm text-muted-foreground">Select books to include on this course's shelf</p>
+                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                        <Badge variant="outline" className="text-xs">
+                                            {course.code}
+                                        </Badge>
+                                        {course.program?.name && (
+                                            <Badge variant="secondary" className="text-xs">
+                                                {course.program.name}
+                                            </Badge>
+                                        )}
+                                        <Badge variant={course.status === 'active' ? 'default' : 'secondary'} className="text-xs capitalize">
+                                            {course.status}
+                                        </Badge>
+                                        {typeof course.shelf_books_count === 'number' && <span>• {course.shelf_books_count} on shelf</span>}
+                                        {typeof course.outdated_books_count === 'number' && course.outdated_books_count > 0 && (
+                                            <span className="flex items-center gap-1 text-destructive">
+                                                <AlertTriangle className="h-3 w-3" />
+                                                {course.outdated_books_count} outdated
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="mt-2 text-sm text-muted-foreground">Select books to include on this course's shelf</p>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex shrink-0 items-center gap-2">
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -241,14 +314,16 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
                                             </>
                                         )}
                                     </Button>
-                                    <Button type="submit" disabled={processing}>
+                                    <Button type="submit" disabled={processing || !hasChanges}>
                                         {processing ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                                 Saving...
                                             </>
+                                        ) : hasChanges ? (
+                                            'Save Changes'
                                         ) : (
-                                            'Save Shelf'
+                                            'Saved'
                                         )}
                                     </Button>
                                 </div>
@@ -256,7 +331,7 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
 
                             {/* Search and Filters */}
                             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-1 items-center gap-2">
                                     <div className="relative flex-1 sm:w-80">
                                         <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                         <Input
@@ -291,6 +366,37 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    {(localFilters.search || localFilters.category !== 'all') && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setLocalFilters({ search: '', category: 'all' })}
+                                        >
+                                            Clear filters
+                                        </Button>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <Switch id="selected-only" checked={showSelectedOnly} onCheckedChange={setShowSelectedOnly} />
+                                        <label htmlFor="selected-only" className="text-sm text-muted-foreground">
+                                            Selected only
+                                        </label>
+                                    </div>
+                                    <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
+                                        <SelectTrigger className="w-48">
+                                            <SelectValue placeholder="Sort by" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="relevance">Sort: Relevance</SelectItem>
+                                            <SelectItem value="title_asc">Sort: Title (A-Z)</SelectItem>
+                                            <SelectItem value="title_desc">Sort: Title (Z-A)</SelectItem>
+                                            <SelectItem value="author_asc">Sort: Author (A-Z)</SelectItem>
+                                            <SelectItem value="year_desc">Sort: Newest Year</SelectItem>
+                                            <SelectItem value="downloads_desc">Sort: Popularity</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </div>
 
@@ -314,9 +420,22 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
                         </div>
 
                         {/* Books List */}
-                        {allBooks.length > 0 ? (
+                        {isSearching ? (
                             <div className={selectedView === 'grid' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-2'}>
-                                {allBooks.map((book) =>
+                                {Array.from({ length: selectedView === 'grid' ? 6 : 5 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={
+                                            selectedView === 'grid'
+                                                ? 'h-28 animate-pulse rounded-lg border bg-muted/30'
+                                                : 'h-16 animate-pulse rounded-lg border bg-muted/30'
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        ) : visibleBooks.length > 0 ? (
+                            <div className={selectedView === 'grid' ? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-2'}>
+                                {visibleBooks.map((book) =>
                                     selectedView === 'grid' ? (
                                         <GridBookCard key={book.id} book={book} />
                                     ) : (
@@ -329,12 +448,65 @@ export default function FacultyCourseShow({ course, allBooks, categories, filter
                                 <BookOpen className="h-12 w-12 text-muted-foreground" />
                                 <h3 className="mt-4 text-lg font-medium">No books found</h3>
                                 <p className="mt-2 text-sm text-muted-foreground">
-                                    {localFilters.search
-                                        ? `No books found matching "${localFilters.search}"`
-                                        : 'No books available with the selected filters'}
+                                    {localFilters.search || localFilters.category !== 'all' || showSelectedOnly
+                                        ? 'Try clearing filters or showing all books'
+                                        : 'No books available'}
                                 </p>
                             </div>
                         )}
+
+                        {/* Sticky Actions Bar */}
+                        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 p-4">
+                            <div className="pointer-events-auto mx-auto flex w-full max-w-7xl items-center justify-between gap-3 rounded-lg border bg-background/90 p-3 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                                <div className="flex flex-wrap items-center gap-3 text-sm">
+                                    <span className="rounded-md bg-muted px-2 py-1">{data.book_ids.length} selected</span>
+                                    {outdatedBooksCount > 0 && (
+                                        <span className="flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-destructive">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            {outdatedBooksCount} outdated
+                                        </span>
+                                    )}
+                                    {hasChanges && <span className="text-muted-foreground">Unsaved changes</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setData('book_ids', [])}
+                                        disabled={data.book_ids.length === 0}
+                                    >
+                                        Clear selection
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            const visibleIds = new Set<number>(visibleBooks.map((b) => b.id));
+                                            const merged = Array.from(new Set<number>([...data.book_ids, ...visibleIds]));
+                                            setData('book_ids', merged);
+                                        }}
+                                        disabled={visibleBooks.length === 0}
+                                    >
+                                        Select all visible
+                                    </Button>
+                                    <Separator orientation="vertical" className="mx-1 h-6" />
+                                    <Button type="submit" disabled={processing || !hasChanges}>
+                                        {processing ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Saving...
+                                            </>
+                                        ) : hasChanges ? (
+                                            'Save Changes'
+                                        ) : (
+                                            'Saved'
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

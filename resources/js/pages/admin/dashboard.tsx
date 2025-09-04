@@ -2,12 +2,15 @@ import { Heading } from '@/components/heading';
 import { OutdatedCoursesWarning } from '@/components/outdated-courses-warning';
 import StatCard from '@/components/stat-card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { Book, Category, User } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { Activity, BarChart3, BookCopy, Calendar, Download, Eye, GraduationCap, Library, TrendingUp, Users } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Area, AreaChart, Cell, Pie, PieChart, XAxis, YAxis } from 'recharts';
 
 interface PopularBook extends Pick<Book, 'id' | 'title' | 'author' | 'download_count'> {
@@ -20,6 +23,10 @@ interface RecentBook extends Pick<Book, 'id' | 'title' | 'author' | 'created_at'
 
 interface RecentUser extends Pick<User, 'id' | 'name' | 'email' | 'created_at'> {
     role: string;
+}
+
+interface MostViewedBook extends Pick<Book, 'id' | 'title' | 'author' | 'views_count'> {
+    category?: Pick<Category, 'name'>;
 }
 
 interface OutdatedCourse {
@@ -36,7 +43,7 @@ interface AdminDashboardProps {
         totalDownloads: number;
         totalViews: number;
         popularBooks: PopularBook[];
-        mostViewedBooks: PopularBook[];
+        mostViewedBooks: MostViewedBook[];
         recentBooks: RecentBook[];
         booksByMonth: { month: string; month_name: string; total: number }[];
         booksByCategory: { name: string; books_count: number }[];
@@ -71,14 +78,33 @@ const PIE_CHART_COLORS = [
     '#1e3a8a', // Navy Blue
 ];
 export default function AdminDashboard({ stats }: AdminDashboardProps) {
-    const combinedMonthlyData = stats.booksByMonth.map((bookData) => {
-        const userData = stats.usersByMonth.find((u) => u.month === bookData.month);
-        return {
-            month: bookData.month_name,
-            books: bookData.total,
-            users: userData?.total || 0,
-        };
-    });
+    const [timeRange, setTimeRange] = useState<'12m' | '6m' | '3m'>('12m');
+
+    const combinedMonthlyData = useMemo(() => {
+        const merged = stats.booksByMonth.map((bookData) => {
+            const userData = stats.usersByMonth.find((u) => u.month === bookData.month);
+            return {
+                month: bookData.month_name,
+                books: bookData.total,
+                users: userData?.total || 0,
+            };
+        });
+        const sliceCount = timeRange === '12m' ? 12 : timeRange === '6m' ? 6 : 3;
+        return merged.slice(-sliceCount);
+    }, [stats.booksByMonth, stats.usersByMonth, timeRange]);
+
+    // Compute simple trends for stat cards based on the last two months
+    const computeTrend = (series: { total: number }[]): { value: number; isPositive: boolean } | undefined => {
+        if (!series || series.length < 2) return undefined;
+        const last = series[series.length - 1]?.total ?? 0;
+        const prev = series[series.length - 2]?.total ?? 0;
+        if (prev === 0) return undefined;
+        const deltaPct = ((last - prev) / prev) * 100;
+        return { value: Math.round(deltaPct), isPositive: deltaPct >= 0 };
+    };
+
+    const booksTrend = computeTrend(stats.booksByMonth);
+    const usersTrend = computeTrend(stats.usersByMonth);
 
     const categoryChartConfig = stats.booksByCategory.reduce((acc, category, index) => {
         acc[category.name] = {
@@ -98,11 +124,23 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
             <Head title="Admin Dashboard" />
             <div className="py-6">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-4 flex items-center justify-between gap-3">
                         <Heading title="Dashboard" description="Welcome back! Here's what's happening with your e-library." />
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                            <Activity className="h-4 w-4" />
-                            <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                        <div className="flex items-center gap-3">
+                            <div className="hidden items-center space-x-2 text-sm text-muted-foreground sm:flex">
+                                <Activity className="h-4 w-4" />
+                                <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                            </div>
+                            <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
+                                <SelectTrigger className="w-[140px]">
+                                    <SelectValue placeholder="Time Range" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="12m">Last 12 months</SelectItem>
+                                    <SelectItem value="6m">Last 6 months</SelectItem>
+                                    <SelectItem value="3m">Last 3 months</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
@@ -117,6 +155,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                                 icon={<Library className="h-4 w-4" />}
                                 description="Books in collection"
                                 color="var(--chart-1)"
+                                trend={booksTrend}
                             />
                             <StatCard
                                 title="Active Users"
@@ -124,6 +163,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                                 icon={<Users className="h-4 w-4" />}
                                 description="Registered users"
                                 color="var(--chart-2)"
+                                trend={usersTrend}
                             />
                             <StatCard
                                 title="Programs"
@@ -164,7 +204,7 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                                         <BarChart3 className="h-5 w-5" />
                                         Growth Trends
                                     </CardTitle>
-                                    <CardDescription>Books and users added over the last 12 months</CardDescription>
+                                    <CardDescription>Books and users added over the selected time range</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <ChartContainer config={chartConfig} className="h-[300px]">
@@ -241,9 +281,9 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                         </div>
 
                         {/* Activity Tables */}
-                        <div className="grid gap-6 lg:grid-cols-2">
+                        <div className="grid gap-6 lg:grid-cols-3">
                             {/* Popular Books */}
-                            <Card>
+                            <Card className="lg:col-span-1">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <TrendingUp className="h-5 w-5" />
@@ -281,8 +321,42 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                                 </CardContent>
                             </Card>
 
+                            {/* Most Viewed Books */}
+                            <Card className="lg:col-span-1">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Eye className="h-5 w-5" />
+                                        Most Viewed Books
+                                    </CardTitle>
+                                    <CardDescription>Based on view count</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        {stats.mostViewedBooks.map((book) => (
+                                            <div key={book.id} className="flex items-center justify-between gap-4">
+                                                <div className="min-w-0 flex-1">
+                                                    <Link
+                                                        href={route('admin.books.show', book.id)}
+                                                        className="block truncate font-medium hover:underline"
+                                                    >
+                                                        {book.title}
+                                                    </Link>
+                                                    <p className="truncate text-sm text-muted-foreground">
+                                                        by {book.author} • {book.category?.name}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-1 text-sm font-medium">
+                                                    <Eye className="h-3 w-3" />
+                                                    {book.views_count?.toLocaleString?.() ?? book.views_count}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
                             {/* Recent Activity */}
-                            <div className="space-y-6">
+                            <div className="space-y-6 lg:col-span-1">
                                 {/* Recent Books */}
                                 <Card>
                                     <CardHeader>
@@ -346,6 +420,48 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
                                 </Card>
                             </div>
                         </div>
+
+                        {/* Quick Actions */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Quick Actions</CardTitle>
+                                <CardDescription>Jump to common admin tasks</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-wrap gap-2">
+                                    <Link href={route('admin.books.index')}>
+                                        <Button size="sm" variant="outline">
+                                            Manage Books
+                                        </Button>
+                                    </Link>
+                                    <Link href={route('admin.categories.index')}>
+                                        <Button size="sm" variant="outline">
+                                            Manage Categories
+                                        </Button>
+                                    </Link>
+                                    <Link href={route('admin.programs.index')}>
+                                        <Button size="sm" variant="outline">
+                                            Manage Programs
+                                        </Button>
+                                    </Link>
+                                    <Link href={route('admin.courses.index')}>
+                                        <Button size="sm" variant="outline">
+                                            Manage Courses
+                                        </Button>
+                                    </Link>
+                                    <Link href={route('admin.users.index')}>
+                                        <Button size="sm" variant="outline">
+                                            Manage Users
+                                        </Button>
+                                    </Link>
+                                    <Link href={route('admin.activity-logs.index')}>
+                                        <Button size="sm" variant="outline">
+                                            View Activity Logs
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
