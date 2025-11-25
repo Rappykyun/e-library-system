@@ -13,10 +13,13 @@ return new class extends Migration {
         // Create the permission
         $permission = Permission::create(['name' => 'view enrolled courses']);
 
-        // Assign it to the student role
-        $studentRole = Role::findByName('student');
-        if ($studentRole) {
+        // Assign it to the student role if it exists
+        try {
+            $studentRole = Role::findByName('student');
             $studentRole->givePermissionTo($permission);
+        } catch (\Spatie\Permission\Exceptions\RoleDoesNotExist $e) {
+            // Role doesn't exist yet, skip assignment
+            // This will be handled in the seeder
         }
     }
 

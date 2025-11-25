@@ -86,7 +86,7 @@ export default function BooksIndex({ books, categories, courses, filters }: Book
                     <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             {isSearching && <Loader2 className="h-4 w-4 animate-spin" />}
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
                                 {books.total > 0 ? (
                                     <>
                                         Showing {books.from} to {books.to} of {books.total} books
@@ -100,7 +100,7 @@ export default function BooksIndex({ books, categories, courses, filters }: Book
                         <BookFilters categories={categories} filters={localFilters} onFilterChange={handleFilterChange} isSearching={isSearching} />
                     </div>
 
-                    <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
+                    <div className="overflow-hidden rounded-lg border bg-white shadow-sm dark:border-neutral-800 dark:bg-[#0f131d]/90 dark:shadow-lg">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -115,12 +115,12 @@ export default function BooksIndex({ books, categories, courses, filters }: Book
                             </TableHeader>
                             <TableBody>
                                 {books.data.map((book) => (
-                                    <TableRow key={book.id}>
+                                    <TableRow key={book.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/70">
                                         <TableCell>
                                             <img
                                                 src={book.cover_image_url || '/placeholder-book.jpg'}
                                                 alt={book.title}
-                                                className="h-10 w-10 rounded object-cover"
+                                                className="h-10 w-10 rounded object-cover shadow-sm ring-1 ring-black/5 dark:ring-white/10"
                                             />
                                         </TableCell>
                                         <TableCell>{book.title}</TableCell>
@@ -131,7 +131,7 @@ export default function BooksIndex({ books, categories, courses, filters }: Book
                                         <TableCell className="text-right">
                                             <div className="flex justify-end space-x-2">
                                                 <Link href={route('admin.books.show', book.id)}>
-                                                    <Button variant="ghost" size="sm" className="hover:bg-gray-300">
+                                                    <Button variant="ghost" size="sm" className="hover:bg-gray-100 dark:hover:bg-neutral-800">
                                                         <Eye className="h-4 w-4" />
                                                     </Button>
                                                 </Link>

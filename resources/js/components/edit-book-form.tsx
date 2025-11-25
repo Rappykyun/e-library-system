@@ -109,17 +109,25 @@ export function EditBookForm({ book, categories = [], courses = [], onBookUpdate
     };
 
     const handleFileSelect = (file: File) => {
-        if (file && (file.type === 'application/pdf' || file.type === 'application/epub+zip')) {
-            if (file.size <= 30 * 1024 * 1024) {
-                // 30MB limit
-                setData('ebook', file);
-                clearErrors('ebook');
-            } else {
-                toast.error('File size must be less than 30MB');
-            }
-        } else {
+        if (!file) return;
+
+        const allowedTypes = ['application/pdf', 'application/epub+zip', 'application/octet-stream'];
+        const allowedExtensions = ['pdf', 'epub'];
+        const fileExtension = file.name.split('.').pop()?.toLowerCase();
+        const isValidType = allowedTypes.includes(file.type) || (fileExtension ? allowedExtensions.includes(fileExtension) : false);
+
+        if (!isValidType) {
             toast.error('Only PDF and EPUB files are allowed');
+            return;
         }
+
+        if (file.size > 30 * 1024 * 1024) {
+            toast.error('File size must be less than 30MB');
+            return;
+        }
+
+        setData('ebook', file);
+        clearErrors('ebook');
     };
 
     const handleThumbnailSelect = (file: File) => {

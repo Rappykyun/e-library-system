@@ -146,7 +146,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
     return (
         <>
-            <div className="fixed top-0 right-0 left-0 z-50 border-b border-sidebar-border/80 bg-white shadow-sm">
+            <div className="fixed top-0 right-0 left-0 z-50 border-b border-sidebar-border/80 bg-white/90 shadow-sm backdrop-blur dark:border-neutral-800 dark:bg-[#0c0f1a]/90">
                 <div className="hidden h-20 items-center space-x-6 bg-[#2A5298] lg:flex">
                     <div className="mx-auto flex w-full max-w-7xl items-center px-3">
                         <div className="mr-4">
@@ -160,7 +160,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         </div>
                     </div>
                 </div>
-                <div className="mx-auto flex h-11 items-center bg-white px-4 md:max-w-7xl">
+                <div className="mx-auto flex h-11 items-center border-b border-transparent bg-white px-4 text-neutral-800 md:max-w-7xl dark:border-neutral-800 dark:bg-[#0c0f1a]/90 dark:text-neutral-100">
                     {/* Mobile Menu */}
                     <div className="lg:hidden">
                         <Sheet>
@@ -217,7 +217,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
                                                 (page.url === item.href || page.url.startsWith(item.href)) && activeItemStyles,
-                                                'h-9 cursor-pointer px-3',
+                                                'h-9 cursor-pointer px-3 text-neutral-700 hover:text-neutral-900 dark:text-neutral-200 dark:hover:text-white',
                                             )}
                                         >
                                             {item.icon && <Icon iconNode={item.icon} className="mr-2 h-4 w-4" />}
@@ -237,9 +237,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         <div className="flex items-center space-x-2">
                             {auth.user && (
                                 <div className="flex flex-col items-end">
-                                    <span className="text-xs font-medium text-gray-600">{auth.user.name}</span>
+                                    <span className="text-xs font-medium text-gray-700 dark:text-gray-100">{auth.user.name}</span>
 
-                                    <span className="text-xs font-medium text-gray-600 capitalize">{auth.roles[0]}</span>
+                                    <span className="text-xs font-medium text-gray-600 capitalize dark:text-gray-300">{auth.roles[0]}</span>
                                 </div>
                             )}
                         </div>
@@ -264,8 +264,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                 </div>
             </div>
             {breadcrumbs.length > 1 && (
-                <div className="flex w-full border-b border-sidebar-border/70 bg-white">
-                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
+                <div className="flex w-full border-b border-sidebar-border/70 bg-white dark:border-neutral-800 dark:bg-[#0c0f1a]">
+                    <div className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl dark:text-neutral-300">
                         <Breadcrumbs breadcrumbs={breadcrumbs} />
                     </div>
                 </div>
