@@ -36,10 +36,11 @@ class BookController extends Controller
 
         // Create a URL-friendly file name for the download.
         $fileName = Str::slug($book->title) . '.pdf';
+        $disk = config('book_storage.local_disk', 'public');
 
         // For local storage, we need to handle it differently
-        if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
-            return Storage::disk('public')->download($book->ebook_public_id, $fileName);
+        if ($book->ebook_public_id && Storage::disk($disk)->exists($book->ebook_public_id)) {
+            return Storage::disk($disk)->download($book->ebook_public_id, $fileName);
         }
 
         // Fallback for books that might still use remote URLs (legacy support)
@@ -72,8 +73,9 @@ class BookController extends Controller
         }
 
         // For local storage, serve the file directly for inline viewing
-        if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
-            return Storage::disk('public')->response($book->ebook_public_id, null, [
+        $disk = config('book_storage.local_disk', 'public');
+        if ($book->ebook_public_id && Storage::disk($disk)->exists($book->ebook_public_id)) {
+            return Storage::disk($disk)->response($book->ebook_public_id, null, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="' . Str::slug($book->title) . '.pdf"'
             ]);

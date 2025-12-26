@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Category;
-// use App\Services\AzureBlobService; // Commented out for local storage
+use App\Services\BookStorageService;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,13 +21,12 @@ use App\Models\Course;
 
 class BookController extends Controller
 {
-    // Comment out Azure service for now - can be uncommented later with budget
-    // protected $azureBlobService;
+    private BookStorageService $bookStorage;
 
-    // public function __construct(AzureBlobService $azureBlobService)
-    // {
-    //     $this->azureBlobService = $azureBlobService;
-    // }
+    public function __construct(BookStorageService $bookStorage)
+    {
+        $this->bookStorage = $bookStorage;
+    }
 
     /**
      * Display a listing of the resource.
@@ -80,40 +79,32 @@ class BookController extends Controller
             'isbn' => 'nullable|string|max:20|unique:books',
             'language' => 'nullable|string|max:10',
             'ebook' => 'required|file|mimes:pdf,epub|max:30720',
-            'thumbnail' => 'nullable|file|mimes:jpeg,jpg,png,webp|max:2048', // Manual thumbnail upload
+            'thumbnail' => 'nullable|file|mimes:jpeg,jpg,png,webp|max:2048', 
         ]);
 
         $file = $request->file('ebook');
         $thumbnailFile = $request->file('thumbnail');
 
-        // Generate unique identifiers
-        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $extension = $file->getClientOriginalExtension();
-        $sanitizedName = Str::slug($originalName);
-        $uniqueId = uniqid();
-        $timestamp = now()->format('Y/m');
+        $ebookResult = $this->bookStorage->storeEbook($file);
+        if (!$ebookResult['success']) {
+            return back()->withErrors(['ebook' => 'Failed to upload file: ' . $ebookResult['error']]);
+        }
 
-        // Store PDF in local storage
-        $pdfFileName = $uniqueId . '_' . $sanitizedName . '.' . $extension;
-        $pdfPath = $file->storeAs('books/pdfs/' . $timestamp, $pdfFileName, 'public');
-        $pdfUrl = Storage::url($pdfPath);
-
-        // Handle thumbnail upload
-        $thumbnailUrl = null;
-        $thumbnailPath = null;
-
+        $thumbnailResult = null;
         if ($thumbnailFile) {
-            $thumbnailFileName = $uniqueId . '_' . $sanitizedName . '_thumb.' . $thumbnailFile->getClientOriginalExtension();
-            $thumbnailPath = $thumbnailFile->storeAs('books/thumbnails/' . $timestamp, $thumbnailFileName, 'public');
-            $thumbnailUrl = Storage::url($thumbnailPath);
+            $thumbnailResult = $this->bookStorage->storeThumbnail($thumbnailFile, $ebookResult['context']);
+            if (!$thumbnailResult['success']) {
+                $this->bookStorage->deleteFile($ebookResult['public_id']);
+                return back()->withErrors(['thumbnail' => 'Failed to upload thumbnail: ' . $thumbnailResult['error']]);
+            }
         }
 
         // Save book to database
         $bookData = array_merge($validated, [
-            'ebook_url' => $pdfUrl,
-            'ebook_public_id' => $pdfPath, // Store local path instead of Azure blob name
-            'cover_image_url' => $thumbnailUrl,
-            'thumbnail_public_id' => $thumbnailPath, // Store local path instead of Azure blob name
+            'ebook_url' => $ebookResult['url'],
+            'ebook_public_id' => $ebookResult['public_id'],
+            'cover_image_url' => $thumbnailResult['url'] ?? null,
+            'thumbnail_public_id' => $thumbnailResult['public_id'] ?? null,
         ]);
 
         // Remove thumbnail from bookData as it's not a database field
@@ -365,50 +356,39 @@ class BookController extends Controller
         // Remove thumbnail from bookData as it's not a database field
         unset($bookData['thumbnail']);
 
+        $thumbnailContext = null;
+
         if ($request->hasFile('ebook')) {
-            // Delete old PDF file from local storage
-            if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
-                Storage::disk('public')->delete($book->ebook_public_id);
-            }
+            $this->bookStorage->deleteFile($book->ebook_public_id);
 
             $file = $request->file('ebook');
-            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $extension = $file->getClientOriginalExtension();
-            $sanitizedName = Str::slug($originalName);
-            $uniqueId = uniqid();
-            $timestamp = now()->format('Y/m');
+            $ebookResult = $this->bookStorage->storeEbook($file);
+            if (!$ebookResult['success']) {
+                return back()->withErrors(['ebook' => 'Failed to upload file: ' . $ebookResult['error']]);
+            }
 
-            // Store new PDF
-            $pdfFileName = $uniqueId . '_' . $sanitizedName . '.' . $extension;
-            $pdfPath = $file->storeAs('books/pdfs/' . $timestamp, $pdfFileName, 'public');
-            $pdfUrl = Storage::url($pdfPath);
+            $thumbnailContext = $ebookResult['context'];
 
             $bookData = array_merge($bookData, [
-                'ebook_url' => $pdfUrl,
-                'ebook_public_id' => $pdfPath,
+                'ebook_url' => $ebookResult['url'],
+                'ebook_public_id' => $ebookResult['public_id'],
             ]);
         }
 
         if ($request->hasFile('thumbnail')) {
-            // Delete old thumbnail file from local storage
-            if ($book->thumbnail_public_id && Storage::disk('public')->exists($book->thumbnail_public_id)) {
-                Storage::disk('public')->delete($book->thumbnail_public_id);
-            }
+            $this->bookStorage->deleteFile($book->thumbnail_public_id);
 
             $thumbnailFile = $request->file('thumbnail');
-            $originalName = pathinfo($book->ebook_public_id ?? $book->title, PATHINFO_FILENAME);
-            $sanitizedName = Str::slug($originalName);
-            $uniqueId = uniqid();
-            $timestamp = now()->format('Y/m');
+            $thumbnailContext = $thumbnailContext ?? $this->bookStorage->createContextFromName($book->ebook_public_id ?? $book->title);
+            $thumbnailResult = $this->bookStorage->storeThumbnail($thumbnailFile, $thumbnailContext);
 
-            // Store new thumbnail
-            $thumbnailFileName = $uniqueId . '_' . $sanitizedName . '_thumb.' . $thumbnailFile->getClientOriginalExtension();
-            $thumbnailPath = $thumbnailFile->storeAs('books/thumbnails/' . $timestamp, $thumbnailFileName, 'public');
-            $thumbnailUrl = Storage::url($thumbnailPath);
+            if (!$thumbnailResult['success']) {
+                return back()->withErrors(['thumbnail' => 'Failed to upload thumbnail: ' . $thumbnailResult['error']]);
+            }
 
             $bookData = array_merge($bookData, [
-                'cover_image_url' => $thumbnailUrl,
-                'thumbnail_public_id' => $thumbnailPath,
+                'cover_image_url' => $thumbnailResult['url'],
+                'thumbnail_public_id' => $thumbnailResult['public_id'],
             ]);
         }
 
@@ -498,13 +478,8 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        // Delete PDF and thumbnail from local storage
-        if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
-            Storage::disk('public')->delete($book->ebook_public_id);
-        }
-        if ($book->thumbnail_public_id && Storage::disk('public')->exists($book->thumbnail_public_id)) {
-            Storage::disk('public')->delete($book->thumbnail_public_id);
-        }
+        $this->bookStorage->deleteFile($book->ebook_public_id);
+        $this->bookStorage->deleteFile($book->thumbnail_public_id);
 
         $book->delete();
 
@@ -535,10 +510,19 @@ class BookController extends Controller
             return back()->with('error', 'No downloadable file found for this book.');
         }
 
+        $fileName = Str::slug($book->title) . '.pdf';
+        $disk = config('book_storage.local_disk', 'public');
+
         // For local storage
-        if ($book->ebook_public_id && Storage::disk('public')->exists($book->ebook_public_id)) {
-            $fileName = Str::slug($book->title) . '.pdf';
-            return Storage::disk('public')->download($book->ebook_public_id, $fileName);
+        if ($book->ebook_public_id && Storage::disk($disk)->exists($book->ebook_public_id)) {
+            return Storage::disk($disk)->download($book->ebook_public_id, $fileName);
+        }
+
+        // Fallback for remote storage
+        if (filter_var($book->ebook_url, FILTER_VALIDATE_URL)) {
+            return response()->streamDownload(function () use ($book) {
+                echo file_get_contents($book->ebook_url);
+            }, $fileName);
         }
 
         return back()->with('error', 'File not found.');
