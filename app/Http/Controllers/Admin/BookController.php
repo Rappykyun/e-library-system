@@ -6,17 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\Category;
 use App\Services\BookStorageService;
-use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
-use Smalot\PdfParser\Parser;
-use Ottosmops\Pdftothumb\Converter;
-use Illuminate\Http\UploadedFile;
-use Symfony\Component\Process\Process;
+
 use App\Models\Course;
 
 class BookController extends Controller

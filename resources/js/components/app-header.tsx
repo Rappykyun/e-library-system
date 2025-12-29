@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { BookCopy, BookMarked, BookUser, Bookmark, FileClock, GraduationCap, LayoutGrid, Library, Menu, Settings, Users } from 'lucide-react';
-import AppLogoIcon from './app-logo-icon';
 
 // 👑 Admin Navigation - Full System Control
 const adminNavItems: NavItem[] = [
@@ -172,7 +171,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <SheetContent side="left" className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar">
                                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
-                                    <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
+                                    <img src="/ched.png" alt="CHED Logo" className="h-6 w-auto" />
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
