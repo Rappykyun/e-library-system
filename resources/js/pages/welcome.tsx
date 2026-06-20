@@ -66,115 +66,55 @@ export default function Welcome() {
                 </header>
 
                 {/* Main Content */}
-                <main className="relative flex flex-1 items-center justify-center px-5 py-10 sm:px-8 lg:py-12">
-                    <div className="grid w-full max-w-6xl grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-                        <section className="relative overflow-hidden rounded-2xl border border-[#1b1b1816] bg-white/85 p-8 shadow-[0_25px_80px_rgba(23,45,100,0.08)] backdrop-blur-sm dark:border-[#2c2c28] dark:bg-[#0e111a]/90">
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#e8f0ff]/60 via-transparent to-[#f8fbff] dark:from-[#10192c]/60 dark:via-transparent dark:to-[#0b0f1a]" />
-                            <div className="relative flex flex-col gap-6">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-[#2A5298]/10 px-4 py-2 text-sm font-medium text-[#1f355f] dark:bg-[#1f355f]/40 dark:text-[#d6e4ff]">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                                    Regional Office XII • Digital Library
-                                </div>
-                                <div className="space-y-4">
-                                    <h1 className="text-4xl font-bold leading-tight text-[#132247] sm:text-5xl lg:text-6xl dark:text-white">
-                                        Welcome to <span className="text-[#2A5298] dark:text-[#7da5ff]">CHED E-Library</span>
-                                    </h1>
-                                    <p className="max-w-2xl text-lg text-[#2f3b57] dark:text-[#cfd7f0]">
-                                        Browse policies, publications, and academic materials curated for higher education institutions
-                                        across SOCCSKSARGEN. Secure access, fast search, always available.
-                                    </p>
-                                </div>
-                                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                    {!auth.user && (
-                                        <Link
-                                            href={route('login')}
-                                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2A5298] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-[2px] hover:bg-[#234378]"
-                                        >
-                                            Enter the Library
-                                            <span aria-hidden="true">→</span>
-                                        </Link>
-                                    )}
-                                    <div className="flex flex-wrap gap-3 text-sm text-[#2f3b57] dark:text-[#c9d2ec]">
-                                        <div className="inline-flex items-center gap-2 rounded-lg bg-[#f2f5ff] px-3 py-2 dark:bg-[#141b2b]">
-                                            📚 5k+ digital titles
-                                        </div>
-                                        <div className="inline-flex items-center gap-2 rounded-lg bg-[#f2f5ff] px-3 py-2 dark:bg-[#141b2b]">
-                                            🔎 Advanced catalog search
-                                        </div>
-                                        <div className="inline-flex items-center gap-2 rounded-lg bg-[#f2f5ff] px-3 py-2 dark:bg-[#141b2b]">
-                                            🤝 Faculty & student access
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="grid gap-4 sm:grid-cols-3">
-                                    {[
-                                        { label: 'Resources', value: '5,240+' },
-                                        { label: 'Partner Schools', value: '28' },
-                                        { label: 'Avg. Daily Visits', value: '1,200' },
-                                    ].map((stat) => (
-                                        <div
-                                            key={stat.label}
-                                            className="rounded-xl border border-[#1b1b1816] bg-white/70 px-4 py-3 text-left shadow-sm backdrop-blur-sm dark:border-[#2c2c28] dark:bg-[#0f131d]/80"
-                                        >
-                                            <div className="text-xs uppercase tracking-[0.16em] text-[#5c6b8a] dark:text-[#7f8eb5]">
-                                                {stat.label}
-                                            </div>
-                                            <div className="text-2xl font-semibold text-[#132247] dark:text-white">{stat.value}</div>
-                                        </div>
-                                    ))}
-                                </div>
+                <main className="relative flex flex-1 items-center justify-center px-5 py-16 sm:px-8">
+                    <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-[#1b1b1816] bg-white/85 p-10 shadow-[0_25px_80px_rgba(23,45,100,0.08)] backdrop-blur-sm dark:border-[#2c2c28] dark:bg-[#0e111a]/90">
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#e8f0ff]/60 via-transparent to-[#f8fbff] dark:from-[#10192c]/60 dark:via-transparent dark:to-[#0b0f1a]" />
+                        <div className="relative flex flex-col items-center gap-7 text-center">
+                            {/* Badge */}
+                            <div className="inline-flex items-center gap-2 rounded-full bg-[#2A5298]/10 px-4 py-1.5 text-sm font-medium text-[#1f355f] dark:bg-[#1f355f]/40 dark:text-[#d6e4ff]">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                Regional Office XII · Digital Library
                             </div>
-                        </section>
 
-                        <aside className="relative flex flex-col gap-5 rounded-2xl border border-[#1b1b1816] bg-white/90 p-6 shadow-[0_25px_80px_rgba(23,45,100,0.08)] backdrop-blur-sm dark:border-[#2c2c28] dark:bg-[#0e111a]/90">
-                            <div className="flex items-start gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2A5298]/10 text-xl dark:bg-[#1f355f]/60">
-                                    🗂️
-                                </div>
-                                <div className="flex-1">
-                                    <h2 className="text-lg font-semibold text-[#132247] dark:text-white">Quick Access</h2>
-                                    <p className="text-sm text-[#2f3b57] dark:text-[#cfd7f0]">
-                                        Jump into the collections that matter most today.
-                                    </p>
-                                </div>
-                            </div>
+                            {/* Headline */}
                             <div className="space-y-3">
+                                <h1 className="text-4xl font-bold leading-tight text-[#132247] sm:text-5xl lg:text-6xl dark:text-white">
+                                    Welcome to{' '}
+                                    <span className="text-[#2A5298] dark:text-[#7da5ff]">CHED E-Library</span>
+                                </h1>
+                                <p className="text-lg text-[#2f3b57] dark:text-[#cfd7f0]">
+                                    Browse policies, publications, and academic materials for higher education institutions across SOCCSKSARGEN.
+                                </p>
+                            </div>
+
+                            {/* CTA */}
+                            <Link
+                                href={auth.user ? route('dashboard') : route('login')}
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#2A5298] px-7 py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-[#234378] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2A5298]/60"
+                            >
+                                {auth.user ? 'Go to Dashboard' : 'Enter the Library'}
+                                <span aria-hidden="true">→</span>
+                            </Link>
+
+                            {/* Stats */}
+                            <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[#5c6b8a] dark:text-[#7f8eb5]">
                                 {[
-                                    { title: 'Policy Memoranda', desc: 'Latest issuances and guidelines for HEIs.' },
-                                    { title: 'Research & Journals', desc: 'Peer-reviewed works from partner institutions.' },
-                                    { title: 'Digital Bookshelf', desc: 'Core textbooks and reference materials.' },
-                                ].map((item) => (
-                                    <div
-                                        key={item.title}
-                                        className="group relative overflow-hidden rounded-xl border border-[#1b1b1816] bg-gradient-to-br from-white to-[#f6f8ff] p-4 transition hover:-translate-y-[2px] hover:shadow-md dark:border-[#2c2c28] dark:from-[#0f131d] dark:to-[#101626]"
-                                    >
-                                        <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100">
-                                            <div className="h-full w-full bg-gradient-to-r from-[#2A5298]/8 via-transparent to-[#2A5298]/5 dark:from-[#1f355f]/30 dark:via-transparent dark:to-[#1f355f]/20" />
-                                        </div>
-                                        <div className="relative space-y-1">
-                                            <div className="flex items-center justify-between text-sm font-semibold text-[#132247] dark:text-white">
-                                                {item.title}
-                                                <span className="text-xs text-[#2A5298] dark:text-[#9bb6ff]">View</span>
-                                            </div>
-                                            <p className="text-sm text-[#2f3b57] dark:text-[#cfd7f0]">{item.desc}</p>
-                                        </div>
+                                    { value: '5,240+', label: 'Resources' },
+                                    { value: '28', label: 'Partner Schools' },
+                                    { value: '1,200', label: 'Daily Visits' },
+                                ].map((stat, i, arr) => (
+                                    <div key={stat.label} className="flex items-center gap-3">
+                                        <span>
+                                            <span className="font-semibold text-[#132247] dark:text-white">{stat.value}</span>{' '}
+                                            {stat.label}
+                                        </span>
+                                        {i < arr.length - 1 && (
+                                            <span className="h-3 w-px bg-[#1b1b1830] dark:bg-[#2c2c28]" aria-hidden="true" />
+                                        )}
                                     </div>
                                 ))}
                             </div>
-                            <div className="rounded-xl border border-[#1b1b1816] bg-[#2A5298] p-4 text-white shadow-md dark:border-[#2c2c28]">
-                                <div className="flex items-start gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-lg">⏰</div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-base font-semibold">Library Hours</h3>
-                                        <p className="text-sm text-white/80">Mon - Fri, 8:00 AM to 6:00 PM</p>
-                                        <div className="flex items-center gap-2 text-sm">
-                                            <span className="h-2 w-2 rounded-full bg-emerald-300" />
-                                            Online services are available 24/7.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
+                        </div>
                     </div>
                 </main>
             </div>
